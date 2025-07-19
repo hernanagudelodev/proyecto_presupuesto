@@ -1,0 +1,9 @@
+venv/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+# Frontend (si usas node)
+node_modules/
+dist/
+build/
