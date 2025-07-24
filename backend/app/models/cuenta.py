@@ -1,8 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
+from app.models.usuario import Base
 
 class Cuenta(Base):
     __tablename__ = "cuentas"

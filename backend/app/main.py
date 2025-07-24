@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from app.api.api_usuario import router as usuario_router
+from app.api.api_cuenta import router as cuenta_router
 
 app = FastAPI()
 
@@ -8,3 +9,4 @@ def read_root():
     return {"msg": "¡Hola, mundo! Proyecto de Presupuestos y Gastos."}
 
 app.include_router(usuario_router)
+app.include_router(cuenta_router)

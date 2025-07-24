@@ -1,6 +1,7 @@
 import sys
 import os
 from logging.config import fileConfig
+from app.db.base import Base
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
@@ -30,15 +31,15 @@ if db_url:
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# --- IMPORTA LOS MODELOS Y EL OBJETO Base ---
+""" # --- IMPORTA LOS MODELOS Y EL OBJETO Base ---
 # Ajusta este import según dónde centralices tu Base y modelos
 # Ejemplo recomendado: backend/app/db/base.py
 try:
-    from db.base import Base  # O donde declares tu Base y modelos
+    from app.db.base import Base  # O donde declares tu Base y modelos
 except ImportError:
     # Provisional: si no tienes aún el archivo base.py, puedes importar directamente algún modelo
-    from models import Base
-# --------------------------------------------
+    from app.models import Base
+# -------------------------------------------- """
 
 # Define el target_metadata para el autogenerate
 target_metadata = Base.metadata
