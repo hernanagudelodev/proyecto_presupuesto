@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey
 from sqlalchemy.orm import relationship
-from app.models.cuenta import Base
+from app.models.usuario import Base
 
 class Transaccion(Base):
     __tablename__ = "transacciones"
@@ -10,7 +10,9 @@ class Transaccion(Base):
     tipo = Column(String, nullable=False)  # "Ingreso" o "Gasto"
     descripcion = Column(String, nullable=True)
     cuenta_id = Column(Integer, ForeignKey("cuentas.id"), nullable=False)
-    categoria_id = Column(Integer, ForeignKey("categorias.id"), nullable=True)  # La tabla Categoría vendrá después
+    categoria_id = Column(Integer, ForeignKey("categorias.id"), nullable=True)
+    usuario_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
 
     cuenta = relationship("Cuenta")
-    # La relación con Categoría la agregamos luego
+    categoria = relationship("Categoria")
+    usuario = relationship("Usuario", back_populates="transacciones")

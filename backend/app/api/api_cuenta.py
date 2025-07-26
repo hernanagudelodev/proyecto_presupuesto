@@ -17,9 +17,9 @@ def get_db():
 def crear_cuenta(cuenta: CuentaCreate, db: Session = Depends(get_db)):
     return crud.create_cuenta(db, cuenta)
 
-@router.get("/{cuenta_id}", response_model=CuentaResponse)
-def obtener_cuenta(cuenta_id: int, db: Session = Depends(get_db)):
-    cuenta = crud.get_cuenta(db, cuenta_id)
+@router.get("/{cuenta_id}/usuario/{usuario_id}", response_model=CuentaResponse)
+def obtener_cuenta(cuenta_id: int, usuario_id: int, db: Session = Depends(get_db)):
+    cuenta = crud.get_cuenta(db, cuenta_id, usuario_id)
     if not cuenta:
         raise HTTPException(status_code=404, detail="Cuenta no encontrada")
     return cuenta

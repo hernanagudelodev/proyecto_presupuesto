@@ -3,10 +3,13 @@ from app.models.cuenta import Cuenta
 from app.schemas.cuenta import CuentaCreate
 from typing import List, Optional
 
-def get_cuenta(db: Session, cuenta_id: int) -> Optional[Cuenta]:
-    return db.query(Cuenta).filter(Cuenta.id == cuenta_id).first()
+def get_cuenta(db: Session, cuenta_id: int, usuario_id: int) -> Optional[Cuenta]:
+    return db.query(Cuenta).filter(
+        Cuenta.id == cuenta_id,
+        Cuenta.usuario_id == usuario_id
+    ).first()
 
-def get_cuentas_by_usuario(db: Session, usuario_id: int, skip: int = 0, limit: int = 100) -> List[Cuenta]:
+def get_cuentas_by_usuario(db: Session, usuario_id: int, skip=0, limit=100):
     return db.query(Cuenta).filter(Cuenta.usuario_id == usuario_id).offset(skip).limit(limit).all()
 
 def create_cuenta(db: Session, cuenta: CuentaCreate) -> Cuenta:
