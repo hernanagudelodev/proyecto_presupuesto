@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
-from app.models.usuario import Base
+from app.db.base_class import Base
 
 class Categoria(Base):
     __tablename__ = "categorias"
@@ -8,6 +8,6 @@ class Categoria(Base):
     nombre = Column(String, nullable=False)
     tipo = Column(String, nullable=False)  # "Ingreso" o "Gasto"
 
-    usuario_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
+    usuario_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-    usuario = relationship("Usuario", back_populates="categorias")
+    usuario = relationship("User", back_populates="categorias")

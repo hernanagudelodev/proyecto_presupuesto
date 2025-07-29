@@ -11,7 +11,7 @@ class TransaccionBase(BaseModel):
     categoria_id: int
 
 class TransaccionCreate(TransaccionBase):
-    usuario_id: int  # 👈 Solo al crear
+    pass
 
 class TransaccionResponse(TransaccionBase):
     id: int

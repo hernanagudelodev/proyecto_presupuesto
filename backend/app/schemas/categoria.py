@@ -5,7 +5,7 @@ class CategoriaBase(BaseModel):
     tipo: str  # "Ingreso" o "Gasto"
 
 class CategoriaCreate(CategoriaBase):
-    usuario_id: int
+    pass
 
 class CategoriaResponse(CategoriaBase):
     id: int

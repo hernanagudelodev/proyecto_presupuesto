@@ -5,8 +5,8 @@ from app.api.api_categoria import router as categoria_router
 from app.api.api_transaccion import router as transaccion_router
 from app.auth import fastapi_users
 from app.auth.jwt import auth_backend
-from app.models.usuario import Usuario
-from app.schemas.usuario import UsuarioCreate, UsuarioResponse
+from app.schemas.usuario import UserRead, UserCreate, UserUpdate
+
 
 from dotenv import load_dotenv
 load_dotenv(dotenv_path="../.env")  # desde app/main.py
@@ -28,18 +28,17 @@ app.include_router(transaccion_router)
 app.include_router(
     fastapi_users.get_auth_router(auth_backend),
     prefix="/auth/jwt",
-    tags=["auth"]
+    tags=["auth"],
 )
-
 app.include_router(
-    fastapi_users.get_register_router(UsuarioResponse, UsuarioCreate),
+    fastapi_users.get_register_router(UserRead, UserCreate),
     prefix="/auth",
-    tags=["auth"]
+    tags=["auth"],
 )
 
 app.include_router(
-    fastapi_users.get_users_router(UsuarioResponse),
+    fastapi_users.get_users_router(UserRead, UserUpdate, UserCreate),
     prefix="/users",
-    tags=["users"]
+    tags=["users"],
 )
 

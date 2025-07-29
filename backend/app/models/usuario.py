@@ -1,22 +1,17 @@
 from sqlalchemy import Column, Integer, String, Boolean
+from app.db.base_class import Base  # Usa tu instancia única de Base
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
 
-Base = declarative_base()
-
-class Usuario(Base):
-    __tablename__ = "usuarios"
-
-    id = Column(Integer, primary_key=True, index=True)
-    nombre = Column(String, nullable=False)
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    is_superuser = Column(Boolean, default=False, nullable=False)
+    is_verified = Column(Boolean, default=False, nullable=False)
+    nombre = Column(String, nullable=False)  # tu campo personalizado
 
-    is_active = Column(Boolean, default=True)
-    is_verified = Column(Boolean, default=False)
-    is_superuser = Column(Boolean, default=False)
-
+    transacciones = relationship("Transaccion", back_populates="usuario")
     cuentas = relationship("Cuenta", back_populates="usuario")
     categorias = relationship("Categoria", back_populates="usuario")
-    transacciones = relationship("Transaccion", back_populates="usuario")
-

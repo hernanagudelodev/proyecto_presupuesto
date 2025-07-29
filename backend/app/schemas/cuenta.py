@@ -7,7 +7,7 @@ class CuentaBase(BaseModel):
     saldo_inicial: float
 
 class CuentaCreate(CuentaBase):
-    usuario_id: int  # ID del usuario dueño de la cuenta
+    pass
 
 class CuentaResponse(CuentaBase):
     id: int

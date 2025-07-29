@@ -1,26 +1,41 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 from app.models.categoria import Categoria
 from app.schemas.categoria import CategoriaCreate
 from typing import List, Optional
 
-def get_categoria(db: Session, categoria_id: int, usuario_id: int) -> Optional[Categoria]:
-    return db.query(Categoria).filter(
-        Categoria.id == categoria_id,
-        Categoria.usuario_id == usuario_id
-    ).first()
+async def get_categoria(db: AsyncSession, categoria_id: int, usuario_id: int) -> Optional[Categoria]:
+    result = await db.execute(
+        select(Categoria).where(
+            Categoria.id == categoria_id,
+            Categoria.usuario_id == usuario_id
+        )
+    )
+    return result.scalar_one_or_none()
 
-def get_categorias_by_usuario(db: Session, usuario_id: int, skip=0, limit=100):
-    return db.query(Categoria).filter(Categoria.usuario_id == usuario_id).offset(skip).limit(limit).all()
+async def get_categorias_by_usuario(db: AsyncSession, usuario_id: int, skip=0, limit=100) -> List[Categoria]:
+    result = await db.execute(
+        select(Categoria).where(Categoria.usuario_id == usuario_id).offset(skip).limit(limit)
+    )
+    return result.scalars().all()
 
-def create_categoria(db: Session, categoria: CategoriaCreate) -> Categoria:
-    db_categoria = Categoria(**categoria.model_dump())
+async def create_categoria(db: AsyncSession, categoria: CategoriaCreate, usuario_id: int) -> Categoria:
+    data = categoria.model_dump()
+    data["usuario_id"] = usuario_id
+    db_categoria = Categoria(**data)
     db.add(db_categoria)
-    db.commit()
-    db.refresh(db_categoria)
+    await db.commit()
+    await db.refresh(db_categoria)
     return db_categoria
 
-def delete_categoria(db: Session, categoria_id: int):
-    categoria = db.query(Categoria).filter(Categoria.id == categoria_id).first()
+async def delete_categoria(db: AsyncSession, categoria_id: int, usuario_id: int):
+    result = await db.execute(
+        select(Categoria).where(
+            Categoria.id == categoria_id,
+            Categoria.usuario_id == usuario_id
+        )
+    )
+    categoria = result.scalar_one_or_none()
     if categoria:
-        db.delete(categoria)
-        db.commit()
+        await db.delete(categoria)
+        await db.commit()
