@@ -29,7 +29,7 @@ async def main():
         await conn.run_sync(Base.metadata.create_all)
 
     # 2. Abre sesión asíncrona
-    async with async_session() as session:  # type: AsyncSession
+    async with async_session() as session:  # type
         # 3. Elimina todas las transacciones, categorías y cuentas
         await session.execute(delete(Transaccion))
         await session.execute(delete(Categoria))
