@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.api_usuario      import router as usuario_router
 from app.api.api_cuenta       import router as cuenta_router
@@ -14,6 +15,16 @@ from app.schemas.usuario import UserRead, UserCreate, UserUpdate
 load_dotenv(dotenv_path="../.env")  # carga tus vars de entorno
 
 app = FastAPI()
+
+# Configuración de CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # El origen de tu frontend de React
+    allow_credentials=True,
+    allow_methods=["*"],  # Permite todos los métodos (GET, POST, etc.)
+    allow_headers=["*"],  # Permite todos los encabezados
+)
+# -----------------------------------
 
 @app.get("/")
 def read_root():

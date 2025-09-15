@@ -1,95 +1,119 @@
-# 💰 Budget App – Personal Finance & Budget Management API
+# 💰 Budget App – Full-Stack Personal Finance Platform
 
-**Status:** In Development – Internal project with a planned commercial release. Backend foundations complete, including user management, accounts, transactions, categories, and budgets.
+**Status:** 🚀 Actively in Development
+
+A full-stack personal finance application featuring a robust **FastAPI** backend and a modern **React** frontend. This project is designed to showcase a scalable, secure, and feature-rich web application architecture.
 
 ## 📌 Overview
-**Budget App** is a **FastAPI-based backend** for personal and multi-user budget management.  
-It provides secure REST APIs for managing accounts, transactions, categories, and budgets, with authentication and role-based access control.
 
-The project’s long-term goal is to become a **simple yet powerful** budgeting platform with AI-assisted financial insights, including natural language transaction entry and predictive cash flow analysis.
+**Budget App** provides a comprehensive solution for personal and multi-user budget management. The backend exposes a secure RESTful API for handling accounts, categories, and transactions, while the React frontend delivers a responsive and intuitive user interface for interacting with the financial data.
 
----
-
-## 🚀 Current Features
-- **User Management**
-  - Registration, authentication, and profile management.
-  - JWT-based authentication.
-- **Accounts Module**
-  - Create and manage multiple accounts per user.
-- **Categories Module**
-  - Flexible category system for income and expenses.
-- **Transactions Module**
-  - Record and track transactions linked to accounts and categories.
-- **Budgets Module**
-  - Define budgets per category and track spending progress.
-- **API Documentation**
-  - Auto-generated OpenAPI/Swagger documentation.
+The long-term vision is to evolve this platform into a powerful budgeting tool with AI-assisted insights, including natural language transaction entry and predictive cash flow analysis.
 
 ---
 
-## 🛠 Planned Features (Roadmap)
-### Phase 1 – AI Integration
-- AI assistant to monitor spending against budgets.
-- Natural language transaction entry.
-- Intelligent recommendations for saving and optimizing expenses.
+## ✨ Key Features
 
-### Phase 2 – Predictive Cash Flow
-- Forecast future account balances based on recurring transactions.
-- Graphical representation of expected cash flow.
+### ✅ Backend (FastAPI)
+- **Complete User Management**: Secure user registration, JWT-based authentication, email verification, password recovery, and profile management powered by `fastapi-users`.
+- **Accounts Module**: Full CRUD functionality for managing multiple user accounts (e.g., Bank, Cash, Credit Card).
+- **Categories Module**: Flexible system for creating and managing personalized income and expense categories.
+- **Transactions Module**: API endpoints to record, retrieve, update, and delete transactions linked to specific accounts and categories.
+- **Data Security**: Strict data isolation ensuring users can only access their own financial information.
+- **Automated API Documentation**: Interactive OpenAPI (Swagger UI) and ReDoc documentation generated automatically by FastAPI.
 
-### Phase 3 – Frontend Development
-- Web and/or mobile frontend for a complete user experience.
-
----
-
-## 🛠 Tech Stack
-- **Backend:** Python 3.13.6, FastAPI
-- **Database:** PostgreSQL (production target)
-- **Deployment:** Docker + CI/CD pipeline
-- **Authentication:** JWT-based with FastAPI Users
-- **API Documentation:** OpenAPI/Swagger
-
----
-
-## 📂 Current Modules
-- **Users** – Full authentication and profile management.
-- **Accounts** – Multi-account support per user.
-- **Categories** – Income and expense categories.
-- **Transactions** – Linked to accounts and categories.
-- **Budgets** – Per-category budget limits and progress tracking.
+### 🟡 Frontend (React)
+- **Modern Tech Stack**: Built with React and Vite for a fast, efficient development experience.
+- **Client-Side Routing**: Seamless navigation between public and private pages using `react-router-dom`.
+- **State Management**: Global authentication state managed with React's Context API, ensuring a consistent user session.
+- **Protected Routes**: Secure dashboard area accessible only to authenticated users.
+- **Component-Based UI**:
+    - Functional Login/Logout flow.
+    - Reusable modal component for forms.
+    - Dynamic data fetching and rendering for user accounts and categories.
+    - Forms for creating new accounts and categories with real-time UI updates.
 
 ---
 
-## 📸 Screenshots
-*(To be added)*  
-Suggested: Swagger API docs view, budget tracking examples.
+## 🛠️ Tech Stack
+
+- **Backend:** Python, FastAPI
+- **Frontend:** React, Vite, Axios
+- **Database:** SQLite (Development), PostgreSQL (Production Target)
+- **Authentication:** JWT (`fastapi-users`)
+- **API Documentation:** OpenAPI / Swagger UI
+- **Deployment (Planned):** Docker, CI/CD
 
 ---
 
-## ⚙️ Installation
-```bash
-# 1. Clone the repository
-git clone https://github.com/hernanagudelodev/budget-app-backend.git
-cd budget-app-backend
+## 🗺️ Project Roadmap
 
-# 2. Create and activate a virtual environment
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
+### Phase 1 – Frontend Development (In Progress 🟡)
+- **Goal:** Build a complete, functional user interface on top of the existing backend API.
+- **Tasks:**
+    - [x] Authentication Flow (Login/Logout, Global Context)
+    - [x] Protected Routes
+    - [x] View & Create User Accounts
+    - [x] View & Create User Categories
+    - [ ] **Next:** Implement full CRUD for Transactions.
+    - [ ] Enhance the UI/UX with a component library and improved styling.
+    - [ ] Develop the Budgets module frontend.
 
-# 3. Install dependencies
-pip install -r requirements.txt
+### Phase 2 – Predictive Cash Flow (Planned ⚪)
+- **Goal:** Integrate financial forecasting features.
+- **Tasks:**
+    - Forecast future account balances based on recurring transactions.
+    - Implement graphical representations of expected cash flow.
 
-# 4. Set up environment variables
-# Example: create a .env file and configure DATABASE_URL, SECRET_KEY, DEBUG, etc.
+### Phase 3 – AI Integration (Planned ⚪)
+- **Goal:** Leverage AI to provide intelligent financial assistance.
+- **Tasks:**
+    - AI assistant for monitoring spending against budgets.
+    - Natural language transaction entry (e.g., "spent $5 on coffee").
+    - Smart recommendations for savings and expense optimization.
 
-# 5. Run migrations
-alembic upgrade head
+---
 
-# 6. Start the development server
-uvicorn app.main:app --reload
+## 🚀 Getting Started
 
-```
+### Prerequisites
+- Python 3.10+
+- Node.js and npm
+
+### Installation & Setup
+
+1.  **Clone the repository:**
+    ```bash
+    git clone [https://github.com/hernanagudelodev/proyecto_presupuesto.git](https://github.com/hernanagudelodev/proyecto_presupuesto.git)
+    cd proyecto_presupuesto
+    ```
+
+2.  **Backend Setup (FastAPI):**
+    ```bash
+    cd backend
+    python -m venv venv
+    source venv/bin/activate  # On Windows: venv\Scripts\activate
+    pip install -r requirements.txt
+    # Create a .env file from .env.example and set your variables
+    alembic upgrade head
+    uvicorn app.main:app --reload
+    ```
+
+3.  **Frontend Setup (React):**
+    ```bash
+    cd frontend
+    npm install
+    npm run dev
+    ```
+The React app will be available at `http://localhost:5173`.
+
+---
+
+## 📖 API Documentation
+
+Once the backend server is running, interactive API documentation is available at:
+- **Swagger UI:** `http://localhost:8000/docs`
+- **ReDoc:** `http://localhost:8000/redoc`
 
 ---
 
@@ -99,6 +123,5 @@ This project is licensed under the MIT License – see the [LICENSE](LICENSE) fi
 ---
 
 ## 📬 Contact
-**Hernán Agudelo López**  
-📧 hernanagudelodev@gmail.com  
+**Hernán Agudelo López** 📧 hernanagudelodev@gmail.com  
 🔗 [LinkedIn](https://www.linkedin.com/in/hernan-agudelo) | [GitHub](https://github.com/hernanagudelodev)
