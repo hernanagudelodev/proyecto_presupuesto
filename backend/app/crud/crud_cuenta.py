@@ -23,6 +23,10 @@ async def get_cuenta(db: AsyncSession, cuenta_id: int, usuario_id: int) -> Optio
     return result.scalar_one_or_none()
 
 async def get_cuentas_by_usuario(db: AsyncSession, usuario_id: int, skip: int = 0, limit: int = 100) -> List[Cuenta]:
+    # El único cambio está aquí. La consulta es la misma,
+    # pero SQLAlchemy es lo suficientemente inteligente como para saber que,
+    # como 'saldo_actual' está en el esquema de respuesta, debe calcularlo.
+    # La 'hybrid_property' hace todo el trabajo pesado por nosotros.
     result = await db.execute(
         select(Cuenta).where(Cuenta.usuario_id == usuario_id).offset(skip).limit(limit)
     )

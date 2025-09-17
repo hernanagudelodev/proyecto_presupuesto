@@ -15,26 +15,24 @@ async def get_transaccion(db: AsyncSession, transaccion_id: int, usuario_id: int
 
 async def get_transacciones_by_usuario(db: AsyncSession, usuario_id: int, skip=0, limit=100):
     result = await db.execute(
-        select(Transaccion).where(Transaccion.usuario_id == usuario_id).offset(skip).limit(limit)
+        select(Transaccion).where(Transaccion.usuario_id == usuario_id).order_by(Transaccion.fecha.desc()).offset(skip).limit(limit)
     )
     return result.scalars().all()
 
-async def get_transacciones_by_cuenta(db: AsyncSession, cuenta_id: int, skip: int = 0, limit: int = 100) -> List[Transaccion]:
-    result = await db.execute(
-        select(Transaccion).where(Transaccion.cuenta_id == cuenta_id).offset(skip).limit(limit)
-    )
-    return result.scalars().all()
-
+# La función de crear ahora solo se ocupa de crear la transacción. ¡Y ya está!
 async def create_transaccion(db: AsyncSession, transaccion: TransaccionCreate, usuario_id: int) -> Transaccion:
-    data = transaccion.model_dump()
-    data["usuario_id"] = usuario_id
-    db_transaccion = Transaccion(**data)
+    db_transaccion = Transaccion(
+        **transaccion.model_dump(),
+        usuario_id=usuario_id
+    )
     db.add(db_transaccion)
     await db.commit()
     await db.refresh(db_transaccion)
     return db_transaccion
 
 async def delete_transaccion(db: AsyncSession, transaccion_id: int, usuario_id: int):
+    # NOTA: En el futuro, la eliminación de una transacción debería recalcular saldos
+    # o manejar consistencia, pero por ahora esto es correcto.
     result = await db.execute(
         select(Transaccion).where(
             Transaccion.id == transaccion_id,

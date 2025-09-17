@@ -1,5 +1,6 @@
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, NavLink } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { AppShell, Group, Button, Title } from '@mantine/core'; // <-- Importamos componentes de layout
 
 function App() {
   // El componente <Outlet /> es un marcador de posición.
@@ -12,22 +13,59 @@ function App() {
     navigate('/login'); // Redirige al usuario al login
   };
 
-  return (
-    <div>
-      <header style={{ padding: '1rem', backgroundColor: '#f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>Mi App de Presupuesto</h2>
-        {/* Mostramos el botón solo si el usuario está autenticado (si hay token) */}
-        {token && (
-          <button onClick={handleLogout}>
-            Cerrar Sesión
-          </button>
-        )}
-      </header>
+  // Estilos para los NavLink
+  const linkStyles = {
+    padding: '10px 15px',
+    textDecoration: 'none',
+    color: '#333',
+    borderRadius: '4px',
+  };
 
-      <main style={{ padding: '1rem' }}>
+  const activeLinkStyles = {
+    backgroundColor: '#e7f5ff',
+    color: '#1971c2',
+    fontWeight: 'bold',
+  };
+
+  return (
+    // <AppShell> es un componente de Mantine para la estructura principal de la app
+    <AppShell
+      padding="md"
+      // 1. La configuración del header ahora es un objeto
+      header={{ height: 60 }}
+    >
+      {/* 2. Usamos el sub-componente <AppShell.Header> */}
+      <AppShell.Header>
+        <Group position="apart" sx={{ height: '100%' }} px="md">
+          <Title order={3}>Mi App de Presupuesto</Title>
+
+          {token && (
+            <Group>
+              <NavLink 
+                to="/dashboard" 
+                style={({ isActive }) => isActive ? {...linkStyles, ...activeLinkStyles} : linkStyles}
+              >
+                Dashboard
+              </NavLink>
+              <NavLink 
+                to="/transactions" 
+                style={({ isActive }) => isActive ? {...linkStyles, ...activeLinkStyles} : linkStyles}
+              >
+                Historial
+              </NavLink>
+              <Button variant="outline" onClick={handleLogout}>
+                Cerrar Sesión
+              </Button>
+            </Group>
+          )}
+        </Group>
+      </AppShell.Header>
+
+      {/* 3. El contenido principal ahora va dentro de <AppShell.Main> */}
+      <AppShell.Main>
         <Outlet />
-      </main>
-    </div>
+      </AppShell.Main>
+    </AppShell>
   );
 }
 

@@ -1,18 +1,22 @@
 import sys
 import os
+import asyncio
 from logging.config import fileConfig
-from app.db.base import Base
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 from alembic import context
 
 # Agrega la app al sys.path para que se puedan importar los modelos
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'app')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # --- LEER EL .env Y LA URL DE LA BASE DE DATOS ---
 from dotenv import load_dotenv
+
+# Importa tu Base de SQLAlchemy y todos los modelos para que Alembic los detecte
+from app.db.base import Base 
 
 # Cargar el archivo .env desde la carpeta backend
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
@@ -30,16 +34,6 @@ if db_url:
 # Interpret the config file for Python logging.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
-
-""" # --- IMPORTA LOS MODELOS Y EL OBJETO Base ---
-# Ajusta este import según dónde centralices tu Base y modelos
-# Ejemplo recomendado: backend/app/db/base.py
-try:
-    from app.db.base import Base  # O donde declares tu Base y modelos
-except ImportError:
-    # Provisional: si no tienes aún el archivo base.py, puedes importar directamente algún modelo
-    from app.models import Base
-# -------------------------------------------- """
 
 # Define el target_metadata para el autogenerate
 target_metadata = Base.metadata
@@ -64,24 +58,36 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
-def run_migrations_online() -> None:
-    """Run migrations in 'online' mode."""
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
+def do_run_migrations(connection):
+    """Función auxiliar que Alembic ejecutará de forma síncrona."""
+    context.configure(connection=connection, target_metadata=target_metadata)
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+async def run_migrations_online() -> None:
+    """Función principal asíncrona para ejecutar las migraciones."""
+    # Obtenemos el motor a partir de la configuración
+    connectable = AsyncEngine(
+        engine_from_config(
+            config.get_section(config.config_ini_section, {}),
+            prefix="sqlalchemy.",
+            poolclass=pool.NullPool,
+        )
     )
 
-    with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+    # Nos conectamos de forma asíncrona
+    async with connectable.connect() as connection:
+        # Le pedimos a la conexión que ejecute nuestra función auxiliar
+        await connection.run_sync(do_run_migrations)
 
-        with context.begin_transaction():
-            context.run_migrations()
+    # Liberamos los recursos del motor
+    await connectable.dispose()
 
 
+# Bloque final de ejecución
 if context.is_offline_mode():
     run_migrations_offline()
 else:
-    run_migrations_online()
+    # Usamos asyncio.run() para ejecutar nuestra nueva función asíncrona
+    asyncio.run(run_migrations_online())

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { TextInput, NumberInput, Button, Stack } from '@mantine/core'; // <-- Importa componentes de formulario de Mantine
 import axiosInstance from '../api/axiosInstance';
 
 // Este componente recibe una función 'onAccountAdded' para notificar al Dashboard
@@ -39,42 +40,51 @@ function AddAccountForm({ onAccountAdded }) {
     }
   };
 
+  // --- RENDERIZADO CON COMPONENTES DE MANTINE ---
   return (
-    <form onSubmit={handleSubmit} style={{ marginTop: '2rem', border: '1px solid #ccc', padding: '1rem' }}>
-      <h3>Añadir Nueva Cuenta</h3>
-      <div style={{ marginBottom: '0.5rem' }}>
-        <label>Nombre de la Cuenta: </label>
-        <input
-          type="text"
+    // 2. Usamos un <form> normal, pero dentro ponemos los componentes de Mantine
+    <form onSubmit={handleSubmit}>
+      {/* <Stack> nos ayuda a espaciar los elementos verticalmente */}
+      <Stack>
+        <Title order={3}>Añadir Nueva Cuenta</Title>
+
+        <TextInput
+          label="Nombre de la Cuenta"
+          placeholder="Ej: Bancolombia"
           value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
+          onChange={(event) => setNombre(event.currentTarget.value)}
           required
         />
-      </div>
-      <div style={{ marginBottom: '0.5rem' }}>
-        <label>Tipo (Ej: Banco, Efectivo): </label>
-        <input
-          type="text"
+
+        <TextInput
+          label="Tipo"
+          placeholder="Ej: Banco, Efectivo, Tarjeta"
           value={tipo}
-          onChange={(e) => setTipo(e.target.value)}
+          onChange={(event) => setTipo(event.currentTarget.value)}
           required
         />
-      </div>
-      <div style={{ marginBottom: '0.5rem' }}>
-        <label>Saldo Inicial: </label>
-        <input
-          type="number"
+
+        <NumberInput
+          label="Saldo Inicial"
+          placeholder="100000"
           value={saldoInicial}
-          onChange={(e) => setSaldoInicial(e.target.value)}
+          onChange={setSaldoInicial} // NumberInput devuelve el número directamente
           required
+          precision={2} // Permite 2 decimales
+          step={1000}   // Aumenta/disminuye en pasos de 1000 con las flechas
         />
-      </div>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+        {error && <Text color="red" size="sm">{error}</Text>}
 
-      <button type="submit">Crear Cuenta</button>
+        {/* El botón de Mantine tiene más opciones, como 'fullWidth' */}
+        <Button type="submit" fullWidth mt="md">
+          Crear Cuenta
+        </Button>
+      </Stack>
     </form>
   );
 }
 
+// Importamos también Title, Text para que no falte nada
+import { Title, Text } from '@mantine/core';
 export default AddAccountForm;

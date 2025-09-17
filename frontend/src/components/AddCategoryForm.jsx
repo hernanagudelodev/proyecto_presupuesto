@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { TextInput, Select, Button, Stack, Title, Text } from '@mantine/core';
 import axiosInstance from '../api/axiosInstance';
 
 function AddCategoryForm({ onCategoryAdded }) {
@@ -25,28 +26,38 @@ function AddCategoryForm({ onCategoryAdded }) {
     }
   };
 
+  // --- RENDERIZADO CON COMPONENTES DE MANTINE ---
   return (
     <form onSubmit={handleSubmit}>
-      <h3>Añadir Nueva Categoría</h3>
-      <div style={{ marginBottom: '0.5rem' }}>
-        <label>Nombre: </label>
-        <input
-          type="text"
+      <Stack>
+        <Title order={3}>Añadir Nueva Categoría</Title>
+
+        <TextInput
+          label="Nombre de la Categoría"
+          placeholder="Ej: Mercado, Salario"
           value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
+          onChange={(event) => setNombre(event.currentTarget.value)}
           required
         />
-      </div>
-      <div style={{ marginBottom: '0.5rem' }}>
-        <label>Tipo: </label>
-        <select value={tipo} onChange={(e) => setTipo(e.target.value)}>
-          <option value="Gasto">Gasto</option>
-          <option value="Ingreso">Ingreso</option>
-        </select>
-      </div>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <button type="submit">Crear Categoría</button>
+        {/* Usamos el componente Select de Mantine */}
+        <Select
+          label="Tipo"
+          data={[
+            { value: 'Gasto', label: 'Gasto' },
+            { value: 'Ingreso', label: 'Ingreso' },
+          ]}
+          value={tipo}
+          onChange={setTipo} // El Select de Mantine devuelve el 'value' directamente
+          required
+        />
+
+        {error && <Text color="red" size="sm">{error}</Text>}
+
+        <Button type="submit" fullWidth mt="md">
+          Crear Categoría
+        </Button>
+      </Stack>
     </form>
   );
 }

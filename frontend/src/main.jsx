@@ -4,9 +4,14 @@ import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import Modal from 'react-modal';
 import { AuthProvider } from './context/AuthContext';
 
+// Importa el proveedor de Mantine y los estilos base
+import { MantineProvider } from '@mantine/core';
+import '@mantine/core/styles.css';
+
 import App from './App.jsx';
 import Login from './pages/Login.jsx';
 import Dashboard from './pages/Dashboard.jsx';
+import TransactionsHistory from './pages/TransactionsHistory.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import './index.css';
 
@@ -36,6 +41,10 @@ const router = createBrowserRouter([
             path: '/dashboard', // Esta ruta ahora está protegida
             element: <Dashboard />,
           },
+          {
+            path: '/transactions',
+            element: <TransactionsHistory />,
+          },
           // Si en el futuro tienes más rutas protegidas, irían aquí
           // { path: '/perfil', element: <Profile /> },
         ],
@@ -47,9 +56,11 @@ const router = createBrowserRouter([
 // Le decimos a React que use nuestro enrutador
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {/* Envuelve la app con el AuthProvider */}
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    {/* 2. Envuelve TODO con el MantineProvider */}
+    <MantineProvider withGlobalStyles withNormalizeCSS>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </MantineProvider>
   </React.StrictMode>
 );

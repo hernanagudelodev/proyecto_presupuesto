@@ -13,5 +13,11 @@ class CuentaResponse(CuentaBase):
     id: int
     usuario_id: int
 
+    # --- NUEVO CAMPO ---
+    # Añadimos el saldo actual, que será calculado por la propiedad híbrida
+    saldo_actual: float
+
     class Config:
-        orm_mode = True
+        # Usamos from_attributes (el nuevo orm_mode) para que Pydantic
+        # pueda leer propiedades como 'saldo_actual' además de las columnas.
+        from_attributes = True

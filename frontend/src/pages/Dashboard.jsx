@@ -1,33 +1,37 @@
 import { useState, useEffect, useCallback } from 'react';
-import axiosInstance from '../api/axiosInstance'; // Nuestra instancia de Axios configurada
-import AddAccountForm from '../components/AddAccountForm'; // Componente para añadir cuentas
-import AddCategoryForm from '../components/AddCategoryForm'; // Componente para añadir categorías
-import GenericModal from '../components/GenericModal'; // Importa nuestro modal genérico
+import { Container, Title, Button, Stack, Group, Paper, List, Text } from '@mantine/core';
+import axiosInstance from '../api/axiosInstance';
+import GenericModal from '../components/GenericModal';
+import AddAccountForm from '../components/AddAccountForm';
+import AddCategoryForm from '../components/AddCategoryForm';
+import AddTransactionForm from '../components/AddTransactionForm'; // <-- 1. Importa el nuevo formulario
 
 function Dashboard() {
-  // Creamos un estado para guardar la lista de cuentas
+  // --- ESTADOS PARA LOS DATOS ---
   const [accounts, setAccounts] = useState([]);
-  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
-  // Estados para las Categorías
   const [categories, setCategories] = useState([]);
-  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
-  // Creamos un estado para saber si estamos cargando los datos
+  const [transactions, setTransactions] = useState([]); // <-- Nuevo estado para transacciones
+
+  // --- ESTADOS PARA LOS MODALES ---
+  const [modalContent, setModalContent] = useState(null); // Un único estado para controlar el contenido del modal
+
+  // --- ESTADOS DE CARGA Y ERROR ---
   const [loading, setLoading] = useState(true);
-  // Creamos un estado para guardar cualquier error que ocurra
   const [error, setError] = useState(null);
 
-
-  // Función para buscar AMBAS cosas: cuentas y categorías
+  // --- LÓGICA DE BÚSQUEDA DE DATOS ---
   const fetchData = useCallback(async () => {
-    setLoading(true);
+    // No reiniciamos 'loading' aquí para una recarga más suave
     try {
-      // Hacemos las dos peticiones a la vez para más eficiencia
-      const [accountsResponse, categoriesResponse] = await Promise.all([
+      // Hacemos las tres peticiones a la vez para máxima eficiencia
+      const [accRes, catRes, transRes] = await Promise.all([
         axiosInstance.get('/cuentas/'),
-        axiosInstance.get('/categorias/')
+        axiosInstance.get('/categorias/'),
+        axiosInstance.get('/transacciones/') // <-- Pide las transacciones
       ]);
-      setAccounts(accountsResponse.data);
-      setCategories(categoriesResponse.data); // <-- Guarda las categorías
+      setAccounts(accRes.data);
+      setCategories(catRes.data);
+      setTransactions(transRes.data); // <-- Guarda las transacciones
     } catch (err) {
       setError('No se pudieron cargar los datos.');
       console.error(err);
@@ -36,75 +40,89 @@ function Dashboard() {
     }
   }, []);
 
-  // Usamos useEffect para que el código se ejecute solo una vez, cuando el componente se carga por primera vez.
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
- // Función unificada para cuando se añade algo nuevo
+  // --- MANEJO DE MODALES Y ACTUALIZACIÓN DE DATOS ---
+  const openModal = (content) => setModalContent(content);
+  const closeModal = () => setModalContent(null);
+
   const handleItemAdded = () => {
-    setIsAccountModalOpen(false);
-    setIsCategoryModalOpen(false); // Cierra ambos modales por si acaso
-    fetchData(); // Recarga TODOS los datos
+    closeModal();
+    fetchData(); // Recarga TODOS los datos (saldos de cuentas y lista de transacciones)
   };
 
-  // Mostramos diferentes cosas dependiendo del estado
-  if (loading) {
-    return <p>Cargando tus datos...</p>;
-  }
+  if (loading) return <p>Cargando tus datos...</p>;
+  if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
-  if (error) {
-    return <p style={{ color: 'red' }}>{error}</p>;
-  }
-
+  // --- RENDERIZADO DEL DASHBOARD CON COMPONENTES MANTINE Y TUS COMENTARIOS ---
   return (
-    <div>
-      <h1>Tu Dashboard</h1>
+    // <Container> centra el contenido y le da un ancho máximo
+    <Container size="md" my="md">
+      {/* <Stack> apila los elementos verticalmente con un espaciado consistente */}
+      <Stack spacing="lg">
+        
+        {/* Usamos <Title> para el encabezado principal */}
+        <Title order={1}>Tu Dashboard</Title>
 
-      {/* Sección de Cuentas */}
-      <div style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2>Mis Cuentas</h2>
-          {/* Botón para abrir el modal */}
-          <button onClick={() => setIsAccountModalOpen(true)}>Añadir Cuenta</button>
-        </div>
-        {accounts.length > 0 ? (
-          <ul>
-            {accounts.map(acc => <li key={acc.id}><strong>{acc.nombre}</strong> ({acc.tipo}) - Saldo: ${acc.saldo_inicial.toLocaleString()}</li>)}
-          </ul>
-        ) : <p>Aún no tienes cuentas.</p>}
-      </div>
+        {/* Botón principal para la acción más común */}
+        {/* Usamos el componente <Button> de Mantine */}
+        <Button onClick={() => openModal('transaction')} size="md">
+          Añadir Transacción
+        </Button>
 
-      {/* Sección de Categorías */}
-      <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2>Mis Categorías</h2>
-          <button onClick={() => setIsCategoryModalOpen(true)}>Añadir Categoría</button>
-        </div>
-        {categories.length > 0 ? (
-          <ul>
-            {categories.map(cat => <li key={cat.id}><strong>{cat.nombre}</strong> ({cat.tipo})</li>)}
-          </ul>
-        ) : <p>Aún no tienes categorías.</p>}
-      </div>
+        {/* Sección de Transacciones */}
+        {/* <Paper> crea una caja con borde y sombra para agrupar contenido */}
+        <Paper withBorder shadow="sm" p="md">
+          <Title order={2} mb="sm">Últimas Transacciones</Title>
+          {transactions.length > 0 ? (
+            <List spacing="xs" size="sm">
+              {transactions.map(t => <List.Item key={t.id}>{t.fecha}: {t.descripcion} - ${t.valor.toLocaleString()} ({t.tipo})</List.Item>)}
+            </List>
+          ) : <Text color="dimmed">No tienes transacciones todavía.</Text>}
+        </Paper>
 
-      {/* Modal para Cuentas */}
+        {/* Sección de Cuentas */}
+        <Paper withBorder shadow="sm" p="md">
+          {/* <Group position="apart"> alinea elementos a la izquierda y derecha */}
+          <Group position="apart" mb="sm">
+            <Title order={2}>Mis Cuentas</Title>
+            <Button variant="outline" size="xs" onClick={() => openModal('account')}>Añadir Cuenta</Button>
+          </Group>
+          {accounts.length > 0 ? (
+            <List spacing="xs" size="sm">
+              {accounts.map(acc => <List.Item key={acc.id}><strong>{acc.nombre}</strong> - Saldo: ${acc.saldo_actual.toLocaleString()}</List.Item>)}
+            </List>
+          ) : <Text color="dimmed">Aún no tienes cuentas.</Text>}
+        </Paper>
+
+        {/* Sección de Categorías */}
+        <Paper withBorder shadow="sm" p="md">
+          <Group position="apart" mb="sm">
+            <Title order={2}>Mis Categorías</Title>
+            <Button variant="outline" size="xs" onClick={() => openModal('category')}>Añadir Categoría</Button>
+          </Group>
+          {categories.length > 0 ? (
+            <List spacing="xs" size="sm">
+              {categories.map(cat => <List.Item key={cat.id}><strong>{cat.nombre}</strong> ({cat.tipo})</List.Item>)}
+            </List>
+          ) : <Text color="dimmed">Aún no tienes categorías.</Text>}
+        </Paper>
+        
+      </Stack>
+
+      {/* --- MODAL ÚNICO Y DINÁMICO --- */}
+      {/* Esta parte no cambia, ya que nuestro GenericModal es el que controla la apariencia del modal */}
       <GenericModal 
-        isOpen={isAccountModalOpen} 
-        onRequestClose={() => setIsAccountModalOpen(false)}
+        isOpen={!!modalContent} 
+        onRequestClose={closeModal}
       >
-        <AddAccountForm onAccountAdded={handleItemAdded} />
+        {modalContent === 'transaction' && <AddTransactionForm accounts={accounts} categories={categories} onTransactionAdded={handleItemAdded} />}
+        {modalContent === 'account' && <AddAccountForm onAccountAdded={handleItemAdded} />}
+        {modalContent === 'category' && <AddCategoryForm onCategoryAdded={handleItemAdded} />}
       </GenericModal>
-
-      {/* Modal para Categorías */}
-      <GenericModal 
-        isOpen={isCategoryModalOpen} 
-        onRequestClose={() => setIsCategoryModalOpen(false)}
-      >
-        <AddCategoryForm onCategoryAdded={handleItemAdded} />
-      </GenericModal>
-
-    </div>
+    </Container>
   );
 }
 
