@@ -12,6 +12,7 @@ import App from './App.jsx';
 import Login from './pages/Login.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import TransactionsHistory from './pages/TransactionsHistory.jsx';
+import RecurringRules from './pages/RecurringRules.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import './index.css';
 
@@ -44,6 +45,10 @@ const router = createBrowserRouter([
           {
             path: '/transactions',
             element: <TransactionsHistory />,
+          },
+          {
+            path: '/rules',
+            element: <RecurringRules />,
           },
           // Si en el futuro tienes más rutas protegidas, irían aquí
           // { path: '/perfil', element: <Profile /> },

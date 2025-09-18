@@ -53,6 +53,12 @@ function App() {
               >
                 Historial
               </NavLink>
+              <NavLink 
+                to="/rules" 
+                style={({ isActive }) => isActive ? {...linkStyles, ...activeLinkStyles} : linkStyles}
+              >
+                Reglas Recurrentes
+              </NavLink>
               <Button variant="outline" onClick={handleLogout}>
                 Cerrar Sesión
               </Button>

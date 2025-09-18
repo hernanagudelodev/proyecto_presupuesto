@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_async_session
-from app.schemas.transaccion import TransaccionCreate, TransaccionResponse
+from app.schemas.transaccion import TransaccionCreate, TransaccionResponse, TransaccionUpdate
 from app.models.usuario import User
 from app.auth import current_active_user
 import app.crud.crud_transaccion as crud
@@ -48,3 +48,17 @@ async def eliminar_transaccion(
     if not transaccion:
         raise HTTPException(status_code=404, detail="Transacción no encontrada")
     await crud.delete_transaccion(db, transaccion_id, user.id)
+
+
+# Actualizar una transacción
+@router.put("/{transaccion_id}", response_model=TransaccionResponse)
+async def actualizar_transaccion(
+    transaccion_id: int,
+    transaccion: TransaccionUpdate,
+    db: AsyncSession = Depends(get_async_session),
+    user: User = Depends(current_active_user),
+):
+    db_transaccion = await crud.get_transaccion(db, transaccion_id=transaccion_id, usuario_id=user.id)
+    if not db_transaccion:
+        raise HTTPException(status_code=404, detail="Transacción no encontrada")
+    return await crud.update_transaccion(db=db, db_obj=db_transaccion, obj_in=transaccion)

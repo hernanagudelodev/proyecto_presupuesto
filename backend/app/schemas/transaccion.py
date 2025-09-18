@@ -8,6 +8,9 @@ class TransaccionBase(BaseModel):
     tipo: str
     descripcion: Optional[str] = None
 
+    # Añadimos el estado al esquema base para poder recibirlo desde el frontend
+    estado: str = 'Confirmado' # Lo ponemos por defecto en 'Confirmado'
+
     cuenta_origen_id: Optional[int] = None
     cuenta_destino_id: Optional[int] = None
     categoria_id: Optional[int] = None
@@ -19,9 +22,21 @@ class TransaccionBase(BaseModel):
         # La lógica interna es la misma, solo cambia la firma de la función
         if isinstance(data, dict):
             tipo = data.get('tipo')
+            estado = data.get('estado', 'Confirmado') # Leemos el estado
             origen = data.get('cuenta_origen_id')
             destino = data.get('cuenta_destino_id')
             categoria = data.get('categoria_id')
+
+            # --- LÓGICA ACTUALIZADA ---
+            # La validación de cuentas ahora solo se aplica si el estado es 'Confirmado'
+            if estado == 'Confirmado':
+                if tipo == "Gasto" and not origen:
+                    raise ValueError("Los gastos confirmados deben tener una cuenta de origen.")
+                if tipo == "Ingreso" and not destino:
+                    raise ValueError("Los ingresos confirmados deben tener una cuenta de destino.")
+                if tipo == "Transferencia" and (not origen or not destino):
+                    raise ValueError("Las transferencias confirmadas deben tener cuenta de origen y destino.")
+
 
             if tipo == "Gasto":
                 if not origen or not categoria:
@@ -55,3 +70,11 @@ class TransaccionResponse(TransaccionBase):
 
     class Config:
         from_attributes = True # Reemplaza a orm_mode en Pydantic V2
+
+class TransaccionUpdate(TransaccionBase):
+    # Hacemos todos los campos opcionales para la actualización
+    fecha: Optional[date] = None
+    valor: Optional[float] = None
+    tipo: Optional[str] = None
+    estado: Optional[str] = None
+

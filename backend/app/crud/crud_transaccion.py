@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.models.transaccion import Transaccion
-from app.schemas.transaccion import TransaccionCreate
+from app.schemas.transaccion import TransaccionCreate, TransaccionUpdate
 from typing import List, Optional
 
 async def get_transaccion(db: AsyncSession, transaccion_id: int, usuario_id: int) -> Optional[Transaccion]:
@@ -43,3 +43,15 @@ async def delete_transaccion(db: AsyncSession, transaccion_id: int, usuario_id: 
     if transaccion:
         await db.delete(transaccion)
         await db.commit()
+
+
+# La función de actualizar
+async def update_transaccion(db: AsyncSession, *, db_obj: Transaccion, obj_in: TransaccionUpdate) -> Transaccion:
+    obj_data = obj_in.model_dump(exclude_unset=True)
+    for field in obj_data:
+        setattr(db_obj, field, obj_data[field])
+    db.add(db_obj)
+    await db.commit()
+    await db.refresh(db_obj)
+    return db_obj
+

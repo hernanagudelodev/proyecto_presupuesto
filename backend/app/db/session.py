@@ -10,7 +10,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 # Asegúrate que la url es tipo 'sqlite+aiosqlite:///ruta' o 'postgresql+asyncpg://...'
 
 engine = create_async_engine(
-    DATABASE_URL, echo=True  # Puedes quitar echo=True en producción
+    DATABASE_URL, echo=False  # Puedes quitar echo=True en producción
 )
 async_session = sessionmaker(
     bind=engine,

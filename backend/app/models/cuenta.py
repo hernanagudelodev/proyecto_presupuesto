@@ -27,7 +27,7 @@ class Cuenta(Base):
         func.coalesce(
             # Para calcular los ingresos, hacemos una mini-búsqueda (una subconsulta)
             select(func.sum(Transaccion.valor))  # 1. "Suma el valor de todas las transacciones..."
-            .where(Transaccion.cuenta_destino_id == id) # 2. "...pero SÓLO de aquellas donde esta cuenta ('id') es el destino."
+            .where(Transaccion.cuenta_destino_id == id, Transaccion.estado == 'Confirmado') # 2. "...pero SÓLO de aquellas donde esta cuenta ('id') es el destino."
             .correlate_except(Transaccion) # 3. (Técnico) "Esta mini-búsqueda está relacionada con la cuenta que estamos calculando ahora."
             .scalar_subquery(), # 4. "Convierte el resultado de la suma en un solo número."
             0 # 5. El '0' en coalesce: "Si la suma da 'nada' (null), usa 0 en su lugar."
@@ -37,7 +37,7 @@ class Cuenta(Base):
         func.coalesce(
             # La lógica es idéntica a la de los ingresos...
             select(func.sum(Transaccion.valor))
-            .where(Transaccion.cuenta_origen_id == id) # ...pero aquí buscamos las transacciones donde esta cuenta es el ORIGEN.
+            .where(Transaccion.cuenta_origen_id == id, Transaccion.estado == 'Confirmado') # ...pero aquí buscamos las transacciones donde esta cuenta es el ORIGEN.
             .correlate_except(Transaccion)
             .scalar_subquery(),
             0 # De nuevo, si no hay egresos, usamos 0.
