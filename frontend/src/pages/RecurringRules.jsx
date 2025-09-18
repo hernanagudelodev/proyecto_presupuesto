@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-// Añadimos Select y NumberInput para el modal
+// Añadimos Select y NumberInput para el nuevo modal de planificación
 import { Container, Title, Table, Button, Group, Text, Select, NumberInput } from '@mantine/core';
 import axiosInstance from '../api/axiosInstance';
 import GenericModal from '../components/GenericModal';
@@ -16,7 +16,7 @@ function RecurringRules() {
   const [modalContent, setModalContent] = useState(null); // 'add', 'edit', 'delete', y ahora 'plan'
   const [selectedRule, setSelectedRule] = useState(null); // Guarda la regla para editar o eliminar
 
-  // --- ESTADOS PARA LA PLANIFICACIÓN ---
+  // --- NUEVOS ESTADOS PARA LA PLANIFICACIÓN ---
   // Guardan el mes y año seleccionados en el modal de planificación
   const [planningMonth, setPlanningMonth] = useState(String(new Date().getMonth() + 1));
   const [planningYear, setPlanningYear] = useState(new Date().getFullYear());

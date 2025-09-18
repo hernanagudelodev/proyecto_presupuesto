@@ -83,7 +83,7 @@ async def generar_transacciones_planeadas(db: AsyncSession, usuario_id: int, yea
                 fecha=fecha_transaccion,
                 valor=regla.valor_predeterminado,
                 tipo=regla.tipo,
-                descripcion=f"(Planeado) {regla.descripcion}",
+                descripcion=f"{regla.descripcion}",
                 estado='Planeado',
                 categoria_id=regla.categoria_predeterminada_id,
                 usuario_id=usuario_id
@@ -99,7 +99,7 @@ async def generar_transacciones_planeadas(db: AsyncSession, usuario_id: int, yea
                     if day.weekday() == regla.dia and day.month == month:
                         nuevas_transacciones.append(Transaccion(
                             fecha=day, valor=regla.valor_predeterminado, tipo=regla.tipo,
-                            descripcion=f"(Planeado) {regla.descripcion}", estado='Planeado',
+                            descripcion=f"{regla.descripcion}", estado='Planeado',
                             categoria_id=regla.categoria_predeterminada_id, usuario_id=usuario_id
                         ))
 
@@ -111,7 +111,7 @@ async def generar_transacciones_planeadas(db: AsyncSession, usuario_id: int, yea
                 fecha_transaccion = date(year, month, dia)
                 nuevas_transacciones.append(Transaccion(
                     fecha=fecha_transaccion, valor=regla.valor_predeterminado, tipo=regla.tipo,
-                    descripcion=f"(Planeado) {regla.descripcion}", estado='Planeado',
+                    descripcion=f"{regla.descripcion}", estado='Planeado',
                     categoria_id=regla.categoria_predeterminada_id, usuario_id=usuario_id
                 ))
 

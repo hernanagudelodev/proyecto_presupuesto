@@ -1,6 +1,7 @@
 from pydantic import BaseModel, model_validator
 from typing import Optional, Any
 from datetime import date
+from .cuenta import CuentaSimple
 
 class TransaccionBase(BaseModel):
     fecha: date
@@ -67,6 +68,9 @@ class TransaccionCreate(TransaccionBase):
 class TransaccionResponse(TransaccionBase):
     id: int
     usuario_id: int # Añadimos el usuario_id para que se vea en la respuesta
+
+    cuenta_origen: Optional[CuentaSimple] = None
+    cuenta_destino: Optional[CuentaSimple] = None
 
     class Config:
         from_attributes = True # Reemplaza a orm_mode en Pydantic V2

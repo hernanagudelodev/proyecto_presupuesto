@@ -21,3 +21,10 @@ class CuentaResponse(CuentaBase):
         # Usamos from_attributes (el nuevo orm_mode) para que Pydantic
         # pueda leer propiedades como 'saldo_actual' además de las columnas.
         from_attributes = True
+
+class CuentaSimple(BaseModel):
+    id: int
+    nombre: str
+
+    class Config:
+        from_attributes = True
