@@ -12,6 +12,7 @@ function AddTransactionForm({ accounts, categories, onTransactionAdded }) {
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
   const [valor, setValor] = useState('');
   const [descripcion, setDescripcion] = useState('');
+  const [estado, setEstado] = useState('Confirmado');
 
   // Estados para las selecciones en los menús. Guardamos el objeto completo que nos da react-select
   const [cuentaOrigenId, setCuentaOrigenId] = useState(null);
@@ -57,6 +58,7 @@ function AddTransactionForm({ accounts, categories, onTransactionAdded }) {
       valor: parseFloat(valor),
       tipo,
       descripcion,
+      estado,
       cuenta_origen_id: cuentaOrigenId ? cuentaOrigenId.value : null,
       cuenta_destino_id: cuentaDestinoId ? cuentaDestinoId.value : null,
       categoria_id: categoriaId ? categoriaId.value : null,
@@ -68,9 +70,10 @@ function AddTransactionForm({ accounts, categories, onTransactionAdded }) {
       alert('¡Transacción creada exitosamente!');
       onTransactionAdded(); // Avisamos al Dashboard que todo salió bien
     } catch (err) {
-        const errorMessage = err.response?.data?.detail || 'No se pudo crear la transacción.';
-        setError(errorMessage);
-        console.error(err);
+      // CORRECCIÓN: Se extrae y muestra solo el mensaje de error legible.
+      const errorMessage = err.response?.data?.detail || 'No se pudo crear la transacción.';
+      setError(errorMessage);
+      console.error(err);
     }
   };
 
@@ -90,6 +93,15 @@ function AddTransactionForm({ accounts, categories, onTransactionAdded }) {
             ]}
             value={tipo}
             onChange={setTipo}
+            required
+        />
+
+        {/* Selector para el estado de la transacción */}
+        <MantineSelect
+            label="Estado"
+            data={['Confirmado', 'Planeado']}
+            value={estado}
+            onChange={setEstado}
             required
         />
 

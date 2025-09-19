@@ -4,7 +4,7 @@ from typing import List, Optional
 import calendar
 from datetime import date
 from app.models.transaccion import Transaccion # Importante para la validación
-
+from sqlalchemy import delete, extract
 from app.models.regla_recurrente import ReglaRecurrente
 from app.schemas.regla_recurrente import ReglaRecurrenteCreate, ReglaRecurrenteUpdate
 
@@ -65,20 +65,31 @@ async def delete_regla(db: AsyncSession, regla_id: int, usuario_id: int) -> Opti
 
 async def generar_transacciones_planeadas(db: AsyncSession, usuario_id: int, year: int, month: int) -> List[Transaccion]:
     """
-    Genera transacciones planeadas para un mes y año dados a partir de las reglas del usuario.
+    Genera transacciones planeadas. Para cada regla, primero elimina las transacciones 
+    planeadas existentes de esa regla para ese mes y luego las recrea.
     """
-    # 1. Obtiene todas las reglas del usuario
-    reglas = await get_reglas_by_usuario(db=db, usuario_id=usuario_id, limit=1000) # Usamos un límite alto
-
+    reglas = await get_reglas_by_usuario(db=db, usuario_id=usuario_id, limit=1000)
     nuevas_transacciones = []
 
     # Itera sobre cada regla para generar sus transacciones
     for regla in reglas:
-        if regla.frecuencia == 'Mensual':
-            # Genera una transacción en el día especificado del mes
-            dia = min(regla.dia, calendar.monthrange(year, month)[1]) # Asegura que el día no exceda el mes (ej. día 31 en febrero)
-            fecha_transaccion = date(year, month, dia)
+        
+        # --- CORRECCIÓN: Lógica de borrado selectivo ---
+        # Antes de crear nuevas, borramos solo las transacciones planeadas
+        # que pertenecen a ESTA regla específica para el mes y año dados.
+        stmt = delete(Transaccion).where(
+            Transaccion.usuario_id == usuario_id,
+            Transaccion.estado == 'Planeado',
+            Transaccion.regla_recurrente_id == regla.id, # La condición clave
+            extract('year', Transaccion.fecha) == year,
+            extract('month', Transaccion.fecha) == month
+        )
+        await db.execute(stmt)
 
+        # Ahora, creamos las nuevas transacciones para esta regla
+        if regla.frecuencia == 'Mensual':
+            dia = min(regla.dia, calendar.monthrange(year, month)[1])
+            fecha_transaccion = date(year, month, dia)
             transaccion = Transaccion(
                 fecha=fecha_transaccion,
                 valor=regla.valor_predeterminado,
@@ -86,13 +97,12 @@ async def generar_transacciones_planeadas(db: AsyncSession, usuario_id: int, yea
                 descripcion=f"{regla.descripcion}",
                 estado='Planeado',
                 categoria_id=regla.categoria_predeterminada_id,
-                usuario_id=usuario_id
+                usuario_id=usuario_id,
+                regla_recurrente_id=regla.id
             )
             nuevas_transacciones.append(transaccion)
 
-        # --- LÓGICA PARA FRECUENCIA 'SEMANAL' ---
         elif regla.frecuencia == 'Semanal':
-            # 'regla.dia' representa el día de la semana (0=Lunes, 6=Domingo)
             cal = calendar.Calendar()
             for week in cal.monthdatescalendar(year, month):
                 for day in week:
@@ -100,19 +110,19 @@ async def generar_transacciones_planeadas(db: AsyncSession, usuario_id: int, yea
                         nuevas_transacciones.append(Transaccion(
                             fecha=day, valor=regla.valor_predeterminado, tipo=regla.tipo,
                             descripcion=f"{regla.descripcion}", estado='Planeado',
-                            categoria_id=regla.categoria_predeterminada_id, usuario_id=usuario_id
+                            categoria_id=regla.categoria_predeterminada_id, usuario_id=usuario_id,
+                            regla_recurrente_id=regla.id
                         ))
 
-        # --- LÓGICA PARA FRECUENCIA 'ANUAL' ---
         elif regla.frecuencia == 'Anual':
-            # Solo genera la transacción si el mes de la regla coincide con el mes solicitado
             if regla.mes == month:
                 dia = min(regla.dia, calendar.monthrange(year, month)[1])
                 fecha_transaccion = date(year, month, dia)
                 nuevas_transacciones.append(Transaccion(
                     fecha=fecha_transaccion, valor=regla.valor_predeterminado, tipo=regla.tipo,
                     descripcion=f"{regla.descripcion}", estado='Planeado',
-                    categoria_id=regla.categoria_predeterminada_id, usuario_id=usuario_id
+                    categoria_id=regla.categoria_predeterminada_id, usuario_id=usuario_id,
+                    regla_recurrente_id=regla.id
                 ))
 
     if nuevas_transacciones:

@@ -29,36 +29,26 @@ class TransaccionBase(BaseModel):
             categoria = data.get('categoria_id')
 
             # --- LÓGICA ACTUALIZADA ---
-            # La validación de cuentas ahora solo se aplica si el estado es 'Confirmado'
+            # Las validaciones de cuentas y categorías ahora solo se aplican
+            # si el estado de la transacción es 'Confirmado'.
             if estado == 'Confirmado':
-                if tipo == "Gasto" and not origen:
-                    raise ValueError("Los gastos confirmados deben tener una cuenta de origen.")
-                if tipo == "Ingreso" and not destino:
-                    raise ValueError("Los ingresos confirmados deben tener una cuenta de destino.")
+                if tipo == "Gasto" and (not origen or not categoria):
+                    raise ValueError("Los gastos confirmados deben tener cuenta de origen y categoría.")
+                if tipo == "Ingreso" and (not destino or not categoria):
+                    raise ValueError("Los ingresos confirmados deben tener cuenta de destino y categoría.")
                 if tipo == "Transferencia" and (not origen or not destino):
                     raise ValueError("Las transferencias confirmadas deben tener cuenta de origen y destino.")
 
 
-            if tipo == "Gasto":
-                if not origen or not categoria:
-                    raise ValueError("Los gastos deben tener una cuenta de origen y una categoría.")
-                if destino:
-                    raise ValueError("Los gastos no deben tener una cuenta de destino.")
-
-            elif tipo == "Ingreso":
-                if not destino or not categoria:
-                    raise ValueError("Los ingresos deben tener una cuenta de destino y una categoría.")
-                if origen:
-                    raise ValueError("Los ingresos no deben tener una cuenta de origen.")
-
-            elif tipo == "Transferencia":
-                if not origen or not destino:
-                    raise ValueError("Las transferencias deben tener una cuenta de origen y una de destino.")
-                if categoria:
-                    raise ValueError("Las transferencias no deben tener una categoría.")
-
-            else:
-                raise ValueError("El tipo de transacción debe ser 'Ingreso', 'Gasto' o 'Transferencia'.")
+            # --- VALIDACIONES GENERALES (aplican a todos los estados) ---
+            if tipo == "Gasto" and destino:
+                raise ValueError("Los gastos no deben tener una cuenta de destino.")
+            if tipo == "Ingreso" and origen:
+                raise ValueError("Los ingresos no deben tener una cuenta de origen.")
+            if tipo == "Transferencia" and categoria:
+                raise ValueError("Las transferencias no deben tener una categoría.")
+            if tipo not in ["Ingreso", "Gasto", "Transferencia"]:
+                raise ValueError("El tipo debe ser 'Ingreso', 'Gasto' o 'Transferencia'.")
 
         return data
 

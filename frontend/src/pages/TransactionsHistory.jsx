@@ -1,15 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Container, Title, Table, Button, Group, Text } from '@mantine/core';
+// NUEVO: Importamos Tooltip y Box para mejorar la UI del botón deshabilitado
+import { Container, Title, Table, Button, Group, Text, Badge, Tooltip, Box } from '@mantine/core';
 import axiosInstance from '../api/axiosInstance';
 import GenericModal from '../components/GenericModal';
-import EditTransactionForm from '../components/EditTransactionForm'; // <-- Importamos el nuevo formulario de edición
+import EditTransactionForm from '../components/EditTransactionForm'; // <-- Importamos el formulario de edición
 
 function TransactionsHistory() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // --- NUEVOS ESTADOS PARA LAS ACCIONES ---
+  // --- ESTADOS PARA LAS ACCIONES ---
   // Estado para guardar la transacción que se va a ELIMINAR
   const [transactionToDelete, setTransactionToDelete] = useState(null);
   // Estado para guardar la transacción que se va a EDITAR
@@ -23,8 +24,9 @@ function TransactionsHistory() {
     // No reseteamos loading para que la recarga sea más suave
     try {
       // Hacemos todas las peticiones en paralelo para eficiencia
+      // Aumentamos el límite para asegurarnos de traer todas las transacciones
       const [transRes, accRes, catRes] = await Promise.all([
-        axiosInstance.get('/transacciones/?limit=100'),
+        axiosInstance.get('/transacciones/?limit=1000'), 
         axiosInstance.get('/cuentas/'),
         axiosInstance.get('/categorias/')
       ]);
@@ -43,7 +45,26 @@ function TransactionsHistory() {
     fetchData();
   }, [fetchData]);
 
-  // --- NUEVAS FUNCIONES PARA MANEJAR LAS ACCIONES ---
+  // --- FUNCIONES PARA MANEJAR LAS ACCIONES ---
+
+  // Función para confirmar una transacción planeada
+  const handleConfirmTransaction = async (transaction) => {
+    // Creamos el objeto con los datos mínimos para confirmar,
+    // copiando la transacción existente para no perder datos como descripción, valor, etc.
+    const transactionData = { ...transaction, estado: 'Confirmado' };
+
+    try {
+      // Usamos el endpoint de actualización para cambiar el estado
+      await axiosInstance.put(`/transacciones/${transaction.id}`, transactionData);
+      alert('¡Transacción confirmada!');
+      fetchData(); // Recarga los datos
+    } catch (err) {
+      // CORRECCIÓN: Se extrae y muestra solo el mensaje de error legible del backend.
+      const errorMessage = err.response?.data?.detail || 'Error al confirmar la transacción.';
+      alert(`Error: ${errorMessage}`); // Mostramos el error en un alert para feedback inmediato.
+      console.error(err);
+    }
+  };
 
   // Se ejecuta al hacer clic en "Eliminar" en una fila
   const handleDeleteClick = (transaction) => {
@@ -74,19 +95,87 @@ function TransactionsHistory() {
     fetchData(); // Recarga los datos
   };
 
+  // --- LÓGICA COMPLETA PARA EL SALDO PROGRESIVO ---
+
+  const sortedTransactions = [...transactions].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  const confirmedTotalBalance = accounts.reduce((sum, account) => sum + account.saldo_actual, 0);
+
+  const plannedImpact = transactions
+    .filter(t => t.estado === 'Planeado')
+    .reduce((sum, t) => {
+      if (t.tipo === 'Ingreso') return sum + t.valor;
+      if (t.tipo === 'Gasto') return sum - t.valor;
+      return sum;
+    }, 0);
+
+  let runningBalance = confirmedTotalBalance + plannedImpact;
+
   if (loading) return <p>Cargando historial...</p>;
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
-  // Mapeamos las filas de la tabla a partir de los datos
-  const rows = transactions.map((t) => (
+  const rows = sortedTransactions.map((t) => {
+    const currentRunningBalance = runningBalance;
+    
+    // Aquí revertimos el efecto de la transacción para calcular el saldo de la fila ANTERIOR.
+    // Nota: Las transferencias se ignoran a propósito porque no cambian el saldo TOTAL.
+    if (t.tipo === 'Ingreso') {
+      runningBalance -= t.valor;
+    } else if (t.tipo === 'Gasto') {
+      runningBalance += t.valor;
+    }
+    
+    let accountDisplay = '-';
+    if (t.tipo === 'Gasto' && !t.cuenta_origen_id) {
+      accountDisplay = 'N/A';
+    } else if (t.tipo === 'Gasto') {
+      accountDisplay = t.cuenta_origen?.nombre || 'N/A';
+    } else if (t.tipo === 'Ingreso') {
+      accountDisplay = t.cuenta_destino?.nombre || 'N/A';
+    } else if (t.tipo === 'Transferencia') {
+      accountDisplay = `${t.cuenta_origen?.nombre || '?'} -> ${t.cuenta_destino?.nombre || '?'}`;
+    }
+
+    // Lógica para deshabilitar el botón "Confirmar" si faltan datos
+    const isConfirmDisabled = t.estado === 'Planeado' &&
+      ((t.tipo === 'Gasto' && !t.cuenta_origen_id) || (t.tipo === 'Ingreso' && !t.cuenta_destino_id));
+
+    return (
     <Table.Tr key={t.id}>
       <Table.Td>{t.fecha}</Table.Td>
       <Table.Td>{t.descripcion}</Table.Td>
       <Table.Td>{t.tipo}</Table.Td>
-      <Table.Td style={{ textAlign: 'right' }}>${t.valor.toLocaleString()}</Table.Td>
+      <Table.Td>{accountDisplay}</Table.Td>
       <Table.Td>
-        {/* Espacio para los botones de acción, ahora funcionales */}
+        <Badge color={t.estado === 'Confirmado' ? 'green' : 'yellow'}>
+          {t.estado}
+        </Badge>
+      </Table.Td>
+      <Table.Td style={{ textAlign: 'right' }}>${t.valor.toLocaleString()}</Table.Td>
+      <Table.Td style={{ textAlign: 'right', fontWeight: 'bold' }}>
+        ${currentRunningBalance.toLocaleString()}
+      </Table.Td>
+      <Table.Td>
         <Group spacing="xs">
+          {t.estado === 'Planeado' && (
+            // Se envuelve el botón en un Tooltip para dar feedback al usuario
+            <Tooltip 
+              label="Asigna una cuenta para poder confirmar" 
+              disabled={!isConfirmDisabled}
+            >
+              {/* Se añade el 'Box' para que el tooltip funcione en botones deshabilitados */}
+              <Box> 
+                <Button 
+                  variant="filled" 
+                  color="green" 
+                  size="xs" 
+                  onClick={() => handleConfirmTransaction(t)}
+                  disabled={isConfirmDisabled}
+                >
+                  Confirmar
+                </Button>
+              </Box>
+            </Tooltip>
+          )}
           <Button variant="outline" color="blue" size="xs" onClick={() => handleEditClick(t)}>
             Editar
           </Button>
@@ -96,27 +185,27 @@ function TransactionsHistory() {
         </Group>
       </Table.Td>
     </Table.Tr>
-  ));
+  )});
 
   return (
-    <Container size="lg" my="md">
+    <Container size="xl" my="md">
       <Title order={1} mb="xl">Historial de Transacciones</Title>
-
-      {/* Usamos el componente <Table> de Mantine */}
       <Table striped highlightOnHover>
         <Table.Thead>
           <Table.Tr>
             <Table.Th>Fecha</Table.Th>
             <Table.Th>Descripción</Table.Th>
             <Table.Th>Tipo</Table.Th>
+            <Table.Th>Cuenta</Table.Th>
+            <Table.Th>Estado</Table.Th>
             <Table.Th style={{ textAlign: 'right' }}>Valor</Table.Th>
+            <Table.Th style={{ textAlign: 'right' }}>Saldo</Table.Th>
             <Table.Th>Acciones</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>
       </Table>
       
-      {/* --- MODAL DINÁMICO PARA AMBAS ACCIONES --- */}
       <GenericModal
         isOpen={!!transactionToDelete || !!transactionToEdit}
         onRequestClose={() => {
@@ -124,7 +213,6 @@ function TransactionsHistory() {
           setTransactionToEdit(null);
         }}
       >
-        {/* Contenido del modal para ELIMINAR */}
         {transactionToDelete && (
           <div>
             <Title order={3}>Confirmar Eliminación</Title>
@@ -138,7 +226,6 @@ function TransactionsHistory() {
           </div>
         )}
         
-        {/* Contenido del modal para EDITAR */}
         {transactionToEdit && (
           <EditTransactionForm
             transaction={transactionToEdit}
