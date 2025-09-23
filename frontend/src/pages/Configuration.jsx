@@ -19,6 +19,9 @@ function Configuration() {
           <Tabs.Tab value="categories" component={NavLink} to="/configuration/categories">
             Categorías
           </Tabs.Tab>
+          <Tabs.Tab value="user" component={NavLink} to="/configuration/user">
+            Usuario
+          </Tabs.Tab>
         </Tabs.List>
       </Tabs>
 

@@ -14,7 +14,8 @@ async def get_transaccion(db: AsyncSession, transaccion_id: int, usuario_id: int
         )
         .options(
             selectinload(Transaccion.cuenta_origen), 
-            selectinload(Transaccion.cuenta_destino)
+            selectinload(Transaccion.cuenta_destino),
+            selectinload(Transaccion.categoria)
         )
     )
     return result.scalar_one_or_none()
@@ -27,7 +28,8 @@ async def get_transacciones_by_usuario(db: AsyncSession, usuario_id: int, skip=0
         .where(Transaccion.usuario_id == usuario_id)
         .options(
             selectinload(Transaccion.cuenta_origen), 
-            selectinload(Transaccion.cuenta_destino)
+            selectinload(Transaccion.cuenta_destino),
+            selectinload(Transaccion.categoria)
         )
         .order_by(Transaccion.fecha.desc())
         .offset(skip)
@@ -53,7 +55,8 @@ async def create_transaccion(db: AsyncSession, transaccion: TransaccionCreate, u
         .where(Transaccion.id == db_transaccion.id)
         .options(
             selectinload(Transaccion.cuenta_origen),
-            selectinload(Transaccion.cuenta_destino)
+            selectinload(Transaccion.cuenta_destino),
+            selectinload(Transaccion.categoria)
         )
     )
     return result.scalar_one()
@@ -87,7 +90,8 @@ async def update_transaccion(db: AsyncSession, *, db_obj: Transaccion, obj_in: T
         .where(Transaccion.id == db_obj.id)
         .options(
             selectinload(Transaccion.cuenta_origen),
-            selectinload(Transaccion.cuenta_destino)
+            selectinload(Transaccion.cuenta_destino),
+            selectinload(Transaccion.categoria)
         )
     )
     return result.scalar_one()

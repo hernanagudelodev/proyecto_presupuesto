@@ -102,12 +102,6 @@ function EditTransactionForm({ transaction, accounts, categories, onTransactionU
                 <label>Categoría</label>
                 <Select options={categoryOptions} onChange={setCategoriaId} value={categoriaId} isSearchable/>
               </div>)}
-            {(tipo === 'Gasto' || tipo === 'Ingreso') && (
-              <div>
-                <label>Categoría</label>
-                <Select options={categoryOptions} onChange={setCategoriaId} value={categoriaId} isSearchable/>
-              </div>)}
-
             {error && <Text color="red" size="sm">{error}</Text>}
             <Button type="submit" fullWidth mt="md">Guardar Cambios</Button>
         </Stack>

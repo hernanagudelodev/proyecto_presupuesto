@@ -43,7 +43,7 @@ function ManageCategories() {
 
   const rows = categories.map((cat) => (
     <Table.Tr key={cat.id}>
-      <Table.Td>{cat.nombre}</Table.Td> {/* La llave '}' estaba faltando aquí */}
+      <Table.Td>{cat.nombre}</Table.Td>
       <Table.Td>{cat.tipo}</Table.Td>
       <Table.Td>
         <Group spacing="xs">

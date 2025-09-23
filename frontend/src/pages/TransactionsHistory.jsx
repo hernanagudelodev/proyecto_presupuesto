@@ -128,6 +128,7 @@ function TransactionsHistory() {
     <Table.Tr key={t.id}>
       <Table.Td>{t.fecha}</Table.Td>
       <Table.Td>{t.descripcion}</Table.Td>
+      <Table.Td>{t.categoria?.nombre || '-'}</Table.Td>
       <Table.Td>{t.tipo}</Table.Td>
       <Table.Td>{accountDisplay}</Table.Td>
       <Table.Td>
@@ -170,6 +171,7 @@ function TransactionsHistory() {
           <Table.Tr>
             <Table.Th>Fecha</Table.Th>
             <Table.Th>Descripción</Table.Th>
+            <Table.Th>Categoría</Table.Th>
             <Table.Th>Tipo</Table.Th>
             <Table.Th>Cuenta</Table.Th>
             <Table.Th>Estado</Table.Th>

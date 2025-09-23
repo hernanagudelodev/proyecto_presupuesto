@@ -1,14 +1,13 @@
 import { useState } from 'react';
-// Importamos la instancia de axios que ya tiene la configuración base
+import { useAuth } from '../context/AuthContext';
+import { useNavigate, NavLink } from 'react-router-dom'; // <-- 1. AÑADIR NavLink
+import {Container,Title,Paper,TextInput,PasswordInput, Button, Text, Stack,} from '@mantine/core';
 import axiosInstance from '../api/axiosInstance';
-// Importa el hook 'useNavigate' para poder redirigir al usuario
-import { useNavigate } from 'react-router-dom';
-// Importa el hook 'useAuth' para manejar la autenticación
-import { useAuth } from '../context/AuthContext'; 
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
   // Llama al hook para obtener la función de navegación
   const navigate = useNavigate();
   // Llama al hook para obtener la función de login
@@ -46,28 +45,42 @@ function Login() {
   };
 
   return (
-    <div>
-      <h2>Iniciar Sesión</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Correo Electrónico</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-        <div>
-          <label>Contraseña</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-        <button type="submit">Entrar</button>
-      </form>
-    </div>
+    <Container size="xs" my="xl">
+      <Title align="center">¡Bienvenido de Nuevo!</Title>
+      
+      {/* --- 3. AÑADIR ESTE BLOQUE DE TEXTO Y ENLACE --- */}
+      <Text color="dimmed" size="sm" align="center" mt={5}>
+        ¿No tienes una cuenta?{' '}
+        <NavLink to="/register" style={{ textDecoration: 'none' }}>
+          Regístrate aquí
+        </NavLink>
+      </Text>
+
+      <Paper withBorder shadow="md" p={30} mt={30} radius="md">
+        <form onSubmit={handleSubmit}>
+          <Stack>
+            <TextInput
+              label="Correo Electrónico"
+              placeholder="tu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.currentTarget.value)}
+              required
+            />
+            <PasswordInput
+              label="Contraseña"
+              placeholder="Tu contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.currentTarget.value)}
+              required
+            />
+            {error && <Text color="red" size="sm">{error}</Text>}
+            <Button type="submit" fullWidth mt="xl">
+              Iniciar Sesión
+            </Button>
+          </Stack>
+        </form>
+      </Paper>
+    </Container>
   );
 }
 

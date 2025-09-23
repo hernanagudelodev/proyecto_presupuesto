@@ -17,6 +17,10 @@ import ProtectedRoute from './components/ProtectedRoute.jsx';
 import ManageAccounts from './pages/ManageAccounts'; // NUEVO
 import ManageCategories from './pages/ManageCategories'; // NUEVO
 import Configuration from './pages/Configuration.jsx'; 
+import ManageUser from './pages/ManageUser';
+import ResetPassword from './pages/ResetPassword';
+import Register from './pages/Register.jsx';
+import VerifyEmail from './pages/VerifyEmail.jsx';
 import './index.css';
 
 Modal.setAppElement('#root');
@@ -36,6 +40,18 @@ const router = createBrowserRouter([
       {
         path: '/login',
         element: <Login />,
+      },
+      {
+        path: '/register',
+        element: <Register />,
+      },
+      {
+        path: '/verify-email',
+        element: <VerifyEmail />,
+      },
+      {
+        path: '/auth/reset-password',
+        element: <ResetPassword />,
       },
       // grupo de rutas protegidas
       {
@@ -62,6 +78,7 @@ const router = createBrowserRouter([
               { index: true, element: <Navigate to="/configuration/accounts" replace /> },
               { path: 'accounts', element: <ManageAccounts /> },
               { path: 'categories', element: <ManageCategories /> },
+              { path: 'user', element: <ManageUser /> },
             ]
           },
           // Si en el futuro tienes más rutas protegidas, irían aquí

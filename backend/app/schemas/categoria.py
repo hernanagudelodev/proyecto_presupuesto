@@ -18,3 +18,9 @@ class CategoriaResponse(CategoriaBase):
 
     class Config:
         orm_mode = True
+
+class CategoriaSimple(BaseModel):
+    nombre: str
+
+    class Config:
+        from_attributes = True

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.api_usuario      import router as usuario_router
+# from app.api.api_usuario      import router as usuario_router -- se reemplaza por FastAPI Users
 from app.api.api_cuenta       import router as cuenta_router
 from app.api.api_categoria    import router as categoria_router
 from app.api.api_transaccion  import router as transaccion_router
@@ -32,7 +32,7 @@ def read_root():
     return {"msg": "¡Hola, mundo! Proyecto de Presupuestos y Gastos."}
 
 # Routers de la aplicación
-app.include_router(usuario_router)
+# app.include_router(usuario_router) --- se reemplaza por el siguiente bloque de FastAPI Users
 app.include_router(cuenta_router)
 app.include_router(categoria_router)
 app.include_router(transaccion_router)
