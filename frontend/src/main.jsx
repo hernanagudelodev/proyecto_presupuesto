@@ -16,6 +16,7 @@ import RecurringRules from './pages/RecurringRules.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import ManageAccounts from './pages/ManageAccounts'; // NUEVO
 import ManageCategories from './pages/ManageCategories'; // NUEVO
+import Configuration from './pages/Configuration.jsx'; 
 import './index.css';
 
 Modal.setAppElement('#root');
@@ -52,19 +53,16 @@ const router = createBrowserRouter([
             path: '/rules',
             element: <RecurringRules />,
           },
-          // --- NUEVAS RUTAS DE CONFIGURACIÓN ---
+          // --- NUEVA ESTRUCTURA DE RUTAS ANIDADAS ---
           {
             path: '/configuration',
-            // Redirige a la sub-página de cuentas por defecto
-            element: <Navigate to="/configuration/accounts" replace />,
-          },
-          {
-            path: '/configuration/accounts',
-            element: <ManageAccounts />,
-          },
-          {
-            path: '/configuration/categories',
-            element: <ManageCategories />,
+            element: <Configuration />, // El layout principal de configuración
+            children: [
+              // La ruta por defecto redirige a 'accounts'
+              { index: true, element: <Navigate to="/configuration/accounts" replace /> },
+              { path: 'accounts', element: <ManageAccounts /> },
+              { path: 'categories', element: <ManageCategories /> },
+            ]
           },
           // Si en el futuro tienes más rutas protegidas, irían aquí
           // { path: '/perfil', element: <Profile /> },

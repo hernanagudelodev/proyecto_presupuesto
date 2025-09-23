@@ -5,7 +5,7 @@ import axiosInstance from '../api/axiosInstance';
 import GenericModal from '../components/GenericModal';
 import AddAccountForm from '../components/AddAccountForm';
 // Necesitaremos un nuevo formulario para editar, lo crearemos a continuación
-// import EditAccountForm from '../components/EditAccountForm';
+import EditAccountForm from '../components/EditAccountForm';
 
 function ManageAccounts() {
   const [accounts, setAccounts] = useState([]);
@@ -76,7 +76,7 @@ function ManageAccounts() {
 
       <GenericModal isOpen={!!modalContent} onRequestClose={() => setModalContent(null)}>
         {modalContent === 'add' && <AddAccountForm onAccountAdded={handleSuccess} />}
-        {/* {modalContent === 'edit' && <EditAccountForm account={selectedAccount} onAccountUpdated={handleSuccess} />} */}
+        {modalContent === 'edit' && <EditAccountForm account={selectedAccount} onAccountUpdated={handleSuccess} />}
       </GenericModal>
     </Container>
   );

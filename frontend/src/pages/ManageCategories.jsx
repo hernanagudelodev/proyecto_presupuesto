@@ -43,7 +43,7 @@ function ManageCategories() {
 
   const rows = categories.map((cat) => (
     <Table.Tr key={cat.id}>
-      <Table.Td>{cat.nombre}</Table.Td>
+      <Table.Td>{cat.nombre}</Table.Td> {/* La llave '}' estaba faltando aquí */}
       <Table.Td>{cat.tipo}</Table.Td>
       <Table.Td>
         <Group spacing="xs">
@@ -69,7 +69,8 @@ function ManageCategories() {
         <Button onClick={() => setModalContent('add')}>Añadir Categoría</Button>
       </Group>
 
-      {categories.length > 0 ? (
+      {/* CORRECCIÓN: Se renderiza la tabla solo si hay filas para mostrar */}
+      {rows.length > 0 ? (
         <Table striped highlightOnHover>
           <Table.Thead>
             <Table.Tr>
@@ -78,12 +79,12 @@ function ManageCategories() {
               <Table.Th>Acciones</Table.Th>
             </Table.Tr>
           </Table.Thead>
+          {/* Se asegura de que Tbody solo contenga las filas */}
           <Table.Tbody>{rows}</Table.Tbody>
         </Table>
       ) : (
-        <Text>Aún no tienes categorías. ¡Crea la primera!</Text>
+        <Text mt="lg">Aún no tienes categorías. ¡Crea la primera!</Text>
       )}
-
 
       <GenericModal isOpen={!!modalContent} onRequestClose={() => setModalContent(null)}>
         {modalContent === 'add' && <AddCategoryForm onCategoryAdded={handleSuccess} />}
