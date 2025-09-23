@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel
 
 class CategoriaBase(BaseModel):
@@ -6,6 +7,11 @@ class CategoriaBase(BaseModel):
 
 class CategoriaCreate(CategoriaBase):
     pass
+
+# NUEVO: Esquema para la actualización
+class CategoriaUpdate(BaseModel):
+    nombre: Optional[str] = None
+    tipo: Optional[str] = None
 
 class CategoriaResponse(CategoriaBase):
     id: int

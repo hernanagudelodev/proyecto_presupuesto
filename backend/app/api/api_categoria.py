@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_async_session
-from app.schemas.categoria import CategoriaCreate, CategoriaResponse
+from app.schemas.categoria import CategoriaCreate, CategoriaResponse, CategoriaUpdate
 from app.models.usuario import User
 from app.auth import current_active_user
 import app.crud.crud_categoria as crud
@@ -44,3 +44,16 @@ async def eliminar_categoria(
     if not categoria:
         raise HTTPException(status_code=404, detail="Categoría no encontrada")
     await crud.delete_categoria(db, categoria_id, user.id)
+
+# NUEVO: Endpoint para actualizar una categoría
+@router.put("/{categoria_id}", response_model=CategoriaResponse)
+async def actualizar_categoria(
+    categoria_id: int,
+    categoria_in: CategoriaUpdate,
+    db: AsyncSession = Depends(get_async_session),
+    user: User = Depends(current_active_user),
+):
+    db_categoria = await crud.get_categoria(db, categoria_id=categoria_id, usuario_id=user.id)
+    if not db_categoria:
+        raise HTTPException(status_code=404, detail="Categoría no encontrada")
+    return await crud.update_categoria(db=db, db_obj=db_categoria, obj_in=categoria_in)

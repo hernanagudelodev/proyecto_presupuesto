@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.models.cuenta import Cuenta
-from app.schemas.cuenta import CuentaCreate
+from app.schemas.cuenta import CuentaCreate, CuentaUpdate
 from typing import List, Optional
 
 async def create_cuenta(db: AsyncSession, cuenta: CuentaCreate, usuario_id: int) -> Cuenta:
@@ -31,6 +31,16 @@ async def get_cuentas_by_usuario(db: AsyncSession, usuario_id: int, skip: int = 
         select(Cuenta).where(Cuenta.usuario_id == usuario_id).offset(skip).limit(limit)
     )
     return result.scalars().all()
+
+async def update_cuenta(db: AsyncSession, *, db_obj: Cuenta, obj_in: CuentaUpdate) -> Cuenta:
+    obj_data = obj_in.model_dump(exclude_unset=True)
+    for field in obj_data:
+        setattr(db_obj, field, obj_data[field])
+    db.add(db_obj)
+    await db.commit()
+    await db.refresh(db_obj)
+    return db_obj
+
 
 async def delete_cuenta(db: AsyncSession, cuenta_id: int, usuario_id: int):
     result = await db.execute(

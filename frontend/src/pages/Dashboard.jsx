@@ -88,7 +88,6 @@ function Dashboard() {
           {/* <Group position="apart"> alinea elementos a la izquierda y derecha */}
           <Group position="apart" mb="sm">
             <Title order={2}>Mis Cuentas</Title>
-            <Button variant="outline" size="xs" onClick={() => openModal('account')}>Añadir Cuenta</Button>
           </Group>
           {accounts.length > 0 ? (
             <List spacing="xs" size="sm">
@@ -101,7 +100,6 @@ function Dashboard() {
         <Paper withBorder shadow="sm" p="md">
           <Group position="apart" mb="sm">
             <Title order={2}>Mis Categorías</Title>
-            <Button variant="outline" size="xs" onClick={() => openModal('category')}>Añadir Categoría</Button>
           </Group>
           {categories.length > 0 ? (
             <List spacing="xs" size="sm">

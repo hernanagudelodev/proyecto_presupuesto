@@ -6,6 +6,11 @@ class CuentaBase(BaseModel):
     tipo: str
     saldo_inicial: float
 
+class CuentaUpdate(BaseModel):
+    nombre: Optional[str] = None
+    tipo: Optional[str] = None
+    saldo_inicial: Optional[float] = None
+    
 class CuentaCreate(CuentaBase):
     pass
 

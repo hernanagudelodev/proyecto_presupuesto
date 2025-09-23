@@ -14,6 +14,8 @@ import Dashboard from './pages/Dashboard.jsx';
 import TransactionsHistory from './pages/TransactionsHistory.jsx';
 import RecurringRules from './pages/RecurringRules.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import ManageAccounts from './pages/ManageAccounts'; // NUEVO
+import ManageCategories from './pages/ManageCategories'; // NUEVO
 import './index.css';
 
 Modal.setAppElement('#root');
@@ -49,6 +51,20 @@ const router = createBrowserRouter([
           {
             path: '/rules',
             element: <RecurringRules />,
+          },
+          // --- NUEVAS RUTAS DE CONFIGURACIÓN ---
+          {
+            path: '/configuration',
+            // Redirige a la sub-página de cuentas por defecto
+            element: <Navigate to="/configuration/accounts" replace />,
+          },
+          {
+            path: '/configuration/accounts',
+            element: <ManageAccounts />,
+          },
+          {
+            path: '/configuration/categories',
+            element: <ManageCategories />,
           },
           // Si en el futuro tienes más rutas protegidas, irían aquí
           // { path: '/perfil', element: <Profile /> },

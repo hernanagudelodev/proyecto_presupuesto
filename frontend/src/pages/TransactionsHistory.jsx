@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-// NUEVO: Importamos Tooltip y Box para mejorar la UI del botón deshabilitado
-import { Container, Title, Table, Button, Group, Text, Badge, Tooltip, Box } from '@mantine/core';
+// Se elimina Tooltip y Box porque ya no se usarán con el botón de confirmar
+import { Container, Title, Table, Button, Group, Text, Badge } from '@mantine/core';
 import axiosInstance from '../api/axiosInstance';
 import GenericModal from '../components/GenericModal';
 import EditTransactionForm from '../components/EditTransactionForm'; // <-- Importamos el formulario de edición
@@ -47,25 +47,8 @@ function TransactionsHistory() {
 
   // --- FUNCIONES PARA MANEJAR LAS ACCIONES ---
 
-  // Función para confirmar una transacción planeada
-  const handleConfirmTransaction = async (transaction) => {
-    // Creamos el objeto con los datos mínimos para confirmar,
-    // copiando la transacción existente para no perder datos como descripción, valor, etc.
-    const transactionData = { ...transaction, estado: 'Confirmado' };
-
-    try {
-      // Usamos el endpoint de actualización para cambiar el estado
-      await axiosInstance.put(`/transacciones/${transaction.id}`, transactionData);
-      alert('¡Transacción confirmada!');
-      fetchData(); // Recarga los datos
-    } catch (err) {
-      // CORRECCIÓN: Se extrae y muestra solo el mensaje de error legible del backend.
-      const errorMessage = err.response?.data?.detail || 'Error al confirmar la transacción.';
-      alert(`Error: ${errorMessage}`); // Mostramos el error en un alert para feedback inmediato.
-      console.error(err);
-    }
-  };
-
+  // NUEVO: Se elimina la función handleConfirmTransaction porque el botón ya no existe.
+  
   // Se ejecuta al hacer clic en "Eliminar" en una fila
   const handleDeleteClick = (transaction) => {
     setTransactionToDelete(transaction); // Guarda la transacción para la confirmación
@@ -97,9 +80,13 @@ function TransactionsHistory() {
 
   // --- LÓGICA COMPLETA PARA EL SALDO PROGRESIVO ---
 
+  // 1. Ordenamos todas las transacciones por fecha, de la más reciente a la más antigua.
   const sortedTransactions = [...transactions].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+  // 2. Calculamos el saldo actual REAL (basado solo en transacciones confirmadas), que viene del backend.
   const confirmedTotalBalance = accounts.reduce((sum, account) => sum + account.saldo_actual, 0);
 
+  // 3. Calculamos el impacto futuro de TODAS las transacciones que están en estado "Planeado".
   const plannedImpact = transactions
     .filter(t => t.estado === 'Planeado')
     .reduce((sum, t) => {
@@ -108,11 +95,13 @@ function TransactionsHistory() {
       return sum;
     }, 0);
 
+  // 4. El saldo inicial para nuestro cálculo es el saldo final proyectado.
   let runningBalance = confirmedTotalBalance + plannedImpact;
 
   if (loading) return <p>Cargando historial...</p>;
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
+  // 5. Mapeamos las filas de la tabla y calculamos el saldo progresivo para cada una.
   const rows = sortedTransactions.map((t) => {
     const currentRunningBalance = runningBalance;
     
@@ -135,10 +124,6 @@ function TransactionsHistory() {
       accountDisplay = `${t.cuenta_origen?.nombre || '?'} -> ${t.cuenta_destino?.nombre || '?'}`;
     }
 
-    // Lógica para deshabilitar el botón "Confirmar" si faltan datos
-    const isConfirmDisabled = t.estado === 'Planeado' &&
-      ((t.tipo === 'Gasto' && !t.cuenta_origen_id) || (t.tipo === 'Ingreso' && !t.cuenta_destino_id));
-
     return (
     <Table.Tr key={t.id}>
       <Table.Td>{t.fecha}</Table.Td>
@@ -151,31 +136,21 @@ function TransactionsHistory() {
         </Badge>
       </Table.Td>
       <Table.Td style={{ textAlign: 'right' }}>${t.valor.toLocaleString()}</Table.Td>
-      <Table.Td style={{ textAlign: 'right', fontWeight: 'bold' }}>
+      
+      {/* NUEVO: Se añade un estilo condicional para cambiar el color del saldo */}
+      <Table.Td 
+        style={{ 
+          textAlign: 'right', 
+          fontWeight: 'bold',
+          color: currentRunningBalance >= 0 ? 'green' : '#fa5252' // Verde para positivo/cero, rojo para negativo
+        }}
+      >
         ${currentRunningBalance.toLocaleString()}
       </Table.Td>
+      
       <Table.Td>
+        {/* NUEVO: Se ha eliminado completamente el botón "Confirmar" de esta vista. */}
         <Group spacing="xs">
-          {t.estado === 'Planeado' && (
-            // Se envuelve el botón en un Tooltip para dar feedback al usuario
-            <Tooltip 
-              label="Asigna una cuenta para poder confirmar" 
-              disabled={!isConfirmDisabled}
-            >
-              {/* Se añade el 'Box' para que el tooltip funcione en botones deshabilitados */}
-              <Box> 
-                <Button 
-                  variant="filled" 
-                  color="green" 
-                  size="xs" 
-                  onClick={() => handleConfirmTransaction(t)}
-                  disabled={isConfirmDisabled}
-                >
-                  Confirmar
-                </Button>
-              </Box>
-            </Tooltip>
-          )}
           <Button variant="outline" color="blue" size="xs" onClick={() => handleEditClick(t)}>
             Editar
           </Button>
