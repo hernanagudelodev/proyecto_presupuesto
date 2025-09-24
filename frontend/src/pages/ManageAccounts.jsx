@@ -1,20 +1,21 @@
-// Esta página mostrará la lista de cuentas y permitirá editarlas/crearlas
 import { useState, useEffect, useCallback } from 'react';
-import { Container, Title, Table, Button, Group, Text } from '@mantine/core';
+// 1. Importamos los componentes necesarios
+import { Container, Title, Table, Button, Group, Text, Card, Stack, Badge } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import axiosInstance from '../api/axiosInstance';
 import GenericModal from '../components/GenericModal';
 import AddAccountForm from '../components/AddAccountForm';
-// Necesitaremos un nuevo formulario para editar, lo crearemos a continuación
 import EditAccountForm from '../components/EditAccountForm';
 
 function ManageAccounts() {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Estado para manejar los modales ('add' o 'edit')
   const [modalContent, setModalContent] = useState(null);
   const [selectedAccount, setSelectedAccount] = useState(null);
+
+  // 2. Hook para detectar si es una pantalla móvil
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const fetchData = useCallback(async () => {
     try {
@@ -40,20 +41,57 @@ function ManageAccounts() {
   if (loading) return <p>Cargando cuentas...</p>;
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
-  const rows = accounts.map((acc) => (
-    <Table.Tr key={acc.id}>
-      <Table.Td>{acc.nombre}</Table.Td>
-      <Table.Td>{acc.tipo}</Table.Td>
-      <Table.Td style={{ textAlign: 'right' }}>${acc.saldo_inicial.toLocaleString()}</Table.Td>
-      <Table.Td>
-        <Group spacing="xs">
-          <Button variant="outline" size="xs" onClick={() => { setSelectedAccount(acc); setModalContent('edit'); }}>
+  // 3. VISTA PARA ESCRITORIO (LA TABLA)
+  const DesktopView = (
+    <Table striped highlightOnHover>
+      <Table.Thead>
+        <Table.Tr>
+          <Table.Th>Nombre</Table.Th>
+          <Table.Th>Tipo</Table.Th>
+          <Table.Th style={{ textAlign: 'right' }}>Saldo Inicial</Table.Th>
+          <Table.Th>Acciones</Table.Th>
+        </Table.Tr>
+      </Table.Thead>
+      <Table.Tbody>
+        {accounts.map((acc) => (
+          <Table.Tr key={acc.id}>
+            <Table.Td>{acc.nombre}</Table.Td>
+            <Table.Td>{acc.tipo}</Table.Td>
+            <Table.Td style={{ textAlign: 'right' }}>${acc.saldo_inicial.toLocaleString()}</Table.Td>
+            <Table.Td>
+              <Group spacing="xs">
+                <Button variant="outline" size="xs" onClick={() => { setSelectedAccount(acc); setModalContent('edit'); }}>
+                  Editar
+                </Button>
+              </Group>
+            </Table.Td>
+          </Table.Tr>
+        ))}
+      </Table.Tbody>
+    </Table>
+  );
+
+  // 4. NUEVA VISTA PARA MÓVIL (TARJETAS)
+  const MobileView = (
+    <Stack>
+      {accounts.map((acc) => (
+        <Card shadow="sm" padding="lg" radius="md" withBorder key={acc.id}>
+          <Group position="apart">
+            <div>
+              <Text weight={500}>{acc.nombre}</Text>
+              <Text size="sm" color="dimmed">Tipo: {acc.tipo}</Text>
+            </div>
+            <Badge color="blue" variant="light">
+              Saldo Inicial: ${acc.saldo_inicial.toLocaleString()}
+            </Badge>
+          </Group>
+          <Button variant="outline" size="xs" fullWidth mt="md" onClick={() => { setSelectedAccount(acc); setModalContent('edit'); }}>
             Editar
           </Button>
-        </Group>
-      </Table.Td>
-    </Table.Tr>
-  ));
+        </Card>
+      ))}
+    </Stack>
+  );
 
   return (
     <Container size="md" my="md">
@@ -62,17 +100,11 @@ function ManageAccounts() {
         <Button onClick={() => setModalContent('add')}>Añadir Cuenta</Button>
       </Group>
 
-      <Table striped highlightOnHover>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>Nombre</Table.Th>
-            <Table.Th>Tipo</Table.Th>
-            <Table.Th style={{ textAlign: 'right' }}>Saldo Inicial</Table.Th>
-            <Table.Th>Acciones</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>{rows}</Table.Tbody>
-      </Table>
+      {/* 5. EL INTERRUPTOR MÁGICO */}
+      {accounts.length > 0
+        ? (isMobile ? MobileView : DesktopView)
+        : <Text>Aún no tienes cuentas. ¡Crea la primera!</Text>
+      }
 
       <GenericModal isOpen={!!modalContent} onRequestClose={() => setModalContent(null)}>
         {modalContent === 'add' && <AddAccountForm onAccountAdded={handleSuccess} />}

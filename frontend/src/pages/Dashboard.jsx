@@ -1,124 +1,111 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Container, Title, Button, Stack, Group, Paper, List, Text } from '@mantine/core';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Container, Title, Button, Stack, Group, Paper, List, Text, Divider } from '@mantine/core';
 import axiosInstance from '../api/axiosInstance';
 import GenericModal from '../components/GenericModal';
-import AddAccountForm from '../components/AddAccountForm';
-import AddCategoryForm from '../components/AddCategoryForm';
-import AddTransactionForm from '../components/AddTransactionForm'; // <-- 1. Importa el nuevo formulario
+import AddTransactionForm from '../components/AddTransactionForm';
+// Importamos nuestro archivo de estilos
+import styles from './Dashboard.module.css';
 
 function Dashboard() {
-  // --- ESTADOS PARA LOS DATOS ---
   const [accounts, setAccounts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [transactions, setTransactions] = useState([]); // <-- Nuevo estado para transacciones
-
-  // --- ESTADOS PARA LOS MODALES ---
-  const [modalContent, setModalContent] = useState(null); // Un único estado para controlar el contenido del modal
-
-  // --- ESTADOS DE CARGA Y ERROR ---
+  const [transactions, setTransactions] = useState([]);
+  const [modalContent, setModalContent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // --- LÓGICA DE BÚSQUEDA DE DATOS ---
   const fetchData = useCallback(async () => {
-    // No reiniciamos 'loading' aquí para una recarga más suave
+    setLoading(true);
     try {
-      // Hacemos las tres peticiones a la vez para máxima eficiencia
       const [accRes, catRes, transRes] = await Promise.all([
         axiosInstance.get('/cuentas/'),
         axiosInstance.get('/categorias/'),
-        axiosInstance.get('/transacciones/') // <-- Pide las transacciones
+        axiosInstance.get('/transacciones/?limit=10')
       ]);
       setAccounts(accRes.data);
       setCategories(catRes.data);
-      setTransactions(transRes.data); // <-- Guarda las transacciones
+      setTransactions(transRes.data);
     } catch (err) {
       setError('No se pudieron cargar los datos.');
-      console.error(err);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
-  // --- MANEJO DE MODALES Y ACTUALIZACIÓN DE DATOS ---
+  const totalBalance = useMemo(() => accounts.reduce((sum, account) => sum + account.saldo_actual, 0), [accounts]);
+  const latestConfirmedTransactions = useMemo(() => transactions.filter(t => t.estado === 'Confirmado').sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).slice(0, 5), [transactions]);
+
   const openModal = (content) => setModalContent(content);
   const closeModal = () => setModalContent(null);
-
-  const handleItemAdded = () => {
-    closeModal();
-    fetchData(); // Recarga TODOS los datos (saldos de cuentas y lista de transacciones)
-  };
+  const handleItemAdded = () => { closeModal(); fetchData(); };
 
   if (loading) return <p>Cargando tus datos...</p>;
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
-  // --- RENDERIZADO DEL DASHBOARD CON COMPONENTES MANTINE Y TUS COMENTARIOS ---
   return (
-    // <Container> centra el contenido y le da un ancho máximo
-    <Container size="md" my="md">
-      {/* <Stack> apila los elementos verticalmente con un espaciado consistente */}
+    <Container size="lg" my="md">
       <Stack spacing="lg">
-        
-        {/* Usamos <Title> para el encabezado principal */}
-        <Title order={1}>Tu Dashboard</Title>
+        <Group position="apart">
+          <Title order={1}>Tu Dashboard</Title>
+          <Button onClick={() => openModal('transaction')} size="sm">Añadir Transacción</Button>
+        </Group>
 
-        {/* Botón principal para la acción más común */}
-        {/* Usamos el componente <Button> de Mantine */}
-        <Button onClick={() => openModal('transaction')} size="md">
-          Añadir Transacción
-        </Button>
+        <div className={styles.gridContainer}>
+          {/* Tarjeta de Cuentas */}
+          <Paper withBorder shadow="sm" p="md" className={styles.card}>
+            <div> {/* Contenedor para la cabecera */}
+              <Text size="lg" weight={700}>Mis Cuentas</Text>
+              <Group position="apart" align="baseline" mt="xs">
+                <Text size="md" color="dimmed">Saldo Total Actual:</Text>
+                <Text fz="2rem" weight={700} color={totalBalance >= 0 ? 'teal' : 'red'}>${totalBalance.toLocaleString()}</Text>
+              </Group>
+              <Divider my="sm" />
+            </div>
+            <div className={styles.cardBody}>
+              {accounts.length > 0 ? (
+                <List spacing="xs" size="sm">
+                  {accounts.map(acc => (
+                    <List.Item key={acc.id}>
+                      <Group position="apart">
+                        <Text>{acc.nombre} ({acc.tipo})</Text>
+                        <Text weight={500}>${acc.saldo_actual.toLocaleString()}</Text>
+                      </Group>
+                    </List.Item>
+                  ))}
+                </List>
+              ) : <Text color="dimmed">Aún no tienes cuentas.</Text>}
+            </div>
+          </Paper>
 
-        {/* Sección de Transacciones */}
-        {/* <Paper> crea una caja con borde y sombra para agrupar contenido */}
-        <Paper withBorder shadow="sm" p="md">
-          <Title order={2} mb="sm">Últimas Transacciones</Title>
-          {transactions.length > 0 ? (
-            <List spacing="xs" size="sm">
-              {transactions.map(t => <List.Item key={t.id}>{t.fecha}: {t.descripcion} - ${t.valor.toLocaleString()} ({t.tipo})</List.Item>)}
-            </List>
-          ) : <Text color="dimmed">No tienes transacciones todavía.</Text>}
-        </Paper>
-
-        {/* Sección de Cuentas */}
-        <Paper withBorder shadow="sm" p="md">
-          {/* <Group position="apart"> alinea elementos a la izquierda y derecha */}
-          <Group position="apart" mb="sm">
-            <Title order={2}>Mis Cuentas</Title>
-          </Group>
-          {accounts.length > 0 ? (
-            <List spacing="xs" size="sm">
-              {accounts.map(acc => <List.Item key={acc.id}><strong>{acc.nombre}</strong> - Saldo: ${acc.saldo_actual.toLocaleString()}</List.Item>)}
-            </List>
-          ) : <Text color="dimmed">Aún no tienes cuentas.</Text>}
-        </Paper>
-
-        {/* Sección de Categorías */}
-        <Paper withBorder shadow="sm" p="md">
-          <Group position="apart" mb="sm">
-            <Title order={2}>Mis Categorías</Title>
-          </Group>
-          {categories.length > 0 ? (
-            <List spacing="xs" size="sm">
-              {categories.map(cat => <List.Item key={cat.id}><strong>{cat.nombre}</strong> ({cat.tipo})</List.Item>)}
-            </List>
-          ) : <Text color="dimmed">Aún no tienes categorías.</Text>}
-        </Paper>
-        
+          {/* Tarjeta de Transacciones */}
+          <Paper withBorder shadow="sm" p="md" className={styles.card}>
+            <div> {/* Contenedor para la cabecera */}
+              <Text size="lg" weight={700} mb="sm">Últimas Transacciones (Confirmadas)</Text>
+            </div>
+            <div className={styles.cardBody}>
+              {latestConfirmedTransactions.length > 0 ? (
+                <List spacing="xs" size="sm">
+                  {latestConfirmedTransactions.map(t => (
+                    <List.Item key={t.id}>
+                      <Group position="apart">
+                        <Text>{t.descripcion}</Text>
+                        <Text color={t.tipo === 'Ingreso' ? 'green' : 'red'} weight={500}>
+                          {t.tipo === 'Ingreso' ? '+' : '-'} ${t.valor.toLocaleString()}
+                        </Text>
+                      </Group>
+                    </List.Item>
+                  ))}
+                </List>
+              ) : <Text color="dimmed">No tienes transacciones confirmadas.</Text>}
+            </div>
+          </Paper>
+        </div>
       </Stack>
 
-      {/* --- MODAL ÚNICO Y DINÁMICO --- */}
-      {/* Esta parte no cambia, ya que nuestro GenericModal es el que controla la apariencia del modal */}
-      <GenericModal 
-        isOpen={!!modalContent} 
-        onRequestClose={closeModal}
-      >
+      <GenericModal isOpen={!!modalContent} onRequestClose={closeModal}>
         {modalContent === 'transaction' && <AddTransactionForm accounts={accounts} categories={categories} onTransactionAdded={handleItemAdded} />}
-        {modalContent === 'account' && <AddAccountForm onAccountAdded={handleItemAdded} />}
-        {modalContent === 'category' && <AddCategoryForm onCategoryAdded={handleItemAdded} />}
       </GenericModal>
     </Container>
   );

@@ -1,0 +1,27 @@
+/* Contenedor principal de la grilla */
+.gridContainer {
+  display: grid;
+  grid-template-columns: 1fr; /* Móvil: 1 columna por defecto */
+  gap: var(--mantine-spacing-lg);
+  align-items: stretch; /* Clave: hace que las columnas tengan la misma altura */
+}
+
+/* Solo para pantallas de 768px o más */
+@media (min-width: 768px) {
+  .gridContainer {
+    grid-template-columns: 7fr 5fr; /* Desktop: proporción 7/5 */
+  }
+}
+
+/* Estilo para ambas tarjetas */
+.card {
+  display: flex; /* ¡La clave #1! Convierte la tarjeta en un contenedor flexible */
+  flex-direction: column; /* Apila los elementos hijos verticalmente */
+  height: 100%; /* Asegura que la tarjeta intente ocupar toda la altura de la celda */
+}
+
+/* Estilo para la sección de la lista dentro de la tarjeta */
+.cardBody {
+  flex-grow: 1; /* ¡La clave #2! Hace que esta sección crezca y ocupe el espacio sobrante */
+  padding-top: var(--mantine-spacing-sm);
+}

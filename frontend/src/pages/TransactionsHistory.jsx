@@ -1,32 +1,26 @@
 import { useState, useEffect, useCallback } from 'react';
-// Se elimina Tooltip y Box porque ya no se usarán con el botón de confirmar
-import { Container, Title, Table, Button, Group, Text, Badge } from '@mantine/core';
+import { Container, Title, Table, Button, Group, Text, Badge, Card, Stack, Divider } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import axiosInstance from '../api/axiosInstance';
 import GenericModal from '../components/GenericModal';
-import EditTransactionForm from '../components/EditTransactionForm'; // <-- Importamos el formulario de edición
+import EditTransactionForm from '../components/EditTransactionForm';
 
 function TransactionsHistory() {
+  // --- Estados y hooks ---
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  // --- ESTADOS PARA LAS ACCIONES ---
-  // Estado para guardar la transacción que se va a ELIMINAR
   const [transactionToDelete, setTransactionToDelete] = useState(null);
-  // Estado para guardar la transacción que se va a EDITAR
   const [transactionToEdit, setTransactionToEdit] = useState(null);
-  // Necesitamos los datos de cuentas y categorías para pasarlos al formulario de edición
   const [accounts, setAccounts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
-  // Lógica para buscar todas las transacciones (y ahora también cuentas y categorías)
+  // --- Lógica de carga de datos ---
   const fetchData = useCallback(async () => {
-    // No reseteamos loading para que la recarga sea más suave
     try {
-      // Hacemos todas las peticiones en paralelo para eficiencia
-      // Aumentamos el límite para asegurarnos de traer todas las transacciones
       const [transRes, accRes, catRes] = await Promise.all([
-        axiosInstance.get('/transacciones/?limit=1000'), 
+        axiosInstance.get('/transacciones/?limit=1000'),
         axiosInstance.get('/cuentas/'),
         axiosInstance.get('/categorias/')
       ]);
@@ -45,48 +39,38 @@ function TransactionsHistory() {
     fetchData();
   }, [fetchData]);
 
-  // --- FUNCIONES PARA MANEJAR LAS ACCIONES ---
-
-  // NUEVO: Se elimina la función handleConfirmTransaction porque el botón ya no existe.
-  
-  // Se ejecuta al hacer clic en "Eliminar" en una fila
+  // --- Manejadores de acciones ---
   const handleDeleteClick = (transaction) => {
-    setTransactionToDelete(transaction); // Guarda la transacción para la confirmación
+    setTransactionToDelete(transaction);
   };
   
-  // Se ejecuta al hacer clic en "Editar" en una fila
   const handleEditClick = (transaction) => {
-    setTransactionToEdit(transaction); // Guarda la transacción y abre el modal de edición
+    setTransactionToEdit(transaction);
   };
 
-  // Se ejecuta al confirmar la eliminación en el modal
   const handleConfirmDelete = async () => {
     if (!transactionToDelete) return;
     try {
       await axiosInstance.delete(`/transacciones/${transactionToDelete.id}`);
       alert('¡Transacción eliminada!');
-      setTransactionToDelete(null); // Cierra el modal
-      fetchData(); // Recarga los datos
+      setTransactionToDelete(null);
+      fetchData();
     } catch (err) {
       setError('No se pudo eliminar la transacción.');
     }
   };
 
-  // Se ejecuta cuando el formulario de edición termina con éxito
   const handleTransactionUpdated = () => {
-    setTransactionToEdit(null); // Cierra el modal
-    fetchData(); // Recarga los datos
+    setTransactionToEdit(null);
+    fetchData();
   };
 
-  // --- LÓGICA COMPLETA PARA EL SALDO PROGRESIVO ---
+  if (loading) return <p>Cargando historial...</p>;
+  if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
-  // 1. Ordenamos todas las transacciones por fecha, de la más reciente a la más antigua.
+  // --- Lógica de cálculo de saldo ---
   const sortedTransactions = [...transactions].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-
-  // 2. Calculamos el saldo actual REAL (basado solo en transacciones confirmadas), que viene del backend.
   const confirmedTotalBalance = accounts.reduce((sum, account) => sum + account.saldo_actual, 0);
-
-  // 3. Calculamos el impacto futuro de TODAS las transacciones que están en estado "Planeado".
   const plannedImpact = transactions
     .filter(t => t.estado === 'Planeado')
     .reduce((sum, t) => {
@@ -95,94 +79,129 @@ function TransactionsHistory() {
       return sum;
     }, 0);
 
-  // 4. El saldo inicial para nuestro cálculo es el saldo final proyectado.
-  let runningBalance = confirmedTotalBalance + plannedImpact;
+  let desktopRunningBalance = confirmedTotalBalance + plannedImpact;
+  let mobileRunningBalance = confirmedTotalBalance + plannedImpact;
 
-  if (loading) return <p>Cargando historial...</p>;
-  if (error) return <p style={{ color: 'red' }}>{error}</p>;
+  // --- VISTA PARA ESCRITORIO (TABLA) ---
+  const DesktopView = (
+    <Table striped highlightOnHover>
+      <Table.Thead>
+        <Table.Tr>
+          <Table.Th>Fecha</Table.Th>
+          <Table.Th>Descripción</Table.Th>
+          <Table.Th>Categoría</Table.Th>
+          <Table.Th>Tipo</Table.Th>
+          <Table.Th>Cuenta</Table.Th>
+          <Table.Th>Estado</Table.Th>
+          <Table.Th style={{ textAlign: 'right' }}>Valor</Table.Th>
+          <Table.Th style={{ textAlign: 'right' }}>Saldo</Table.Th>
+          <Table.Th>Acciones</Table.Th>
+        </Table.Tr>
+      </Table.Thead>
+      <Table.Tbody>
+        {sortedTransactions.map((t) => {
+          const currentRunningBalance = desktopRunningBalance;
+          if (t.tipo === 'Ingreso') {
+            desktopRunningBalance -= t.valor;
+          } else if (t.tipo === 'Gasto') {
+            desktopRunningBalance += t.valor;
+          }
+          
+          let accountDisplay = '-';
+          if (t.tipo === 'Gasto') accountDisplay = t.cuenta_origen?.nombre || 'N/A';
+          else if (t.tipo === 'Ingreso') accountDisplay = t.cuenta_destino?.nombre || 'N/A';
+          else if (t.tipo === 'Transferencia') accountDisplay = `${t.cuenta_origen?.nombre || '?'} -> ${t.cuenta_destino?.nombre || '?'}`;
 
-  // 5. Mapeamos las filas de la tabla y calculamos el saldo progresivo para cada una.
-  const rows = sortedTransactions.map((t) => {
-    const currentRunningBalance = runningBalance;
-    
-    // Aquí revertimos el efecto de la transacción para calcular el saldo de la fila ANTERIOR.
-    // Nota: Las transferencias se ignoran a propósito porque no cambian el saldo TOTAL.
-    if (t.tipo === 'Ingreso') {
-      runningBalance -= t.valor;
-    } else if (t.tipo === 'Gasto') {
-      runningBalance += t.valor;
-    }
-    
-    let accountDisplay = '-';
-    if (t.tipo === 'Gasto' && !t.cuenta_origen_id) {
-      accountDisplay = 'N/A';
-    } else if (t.tipo === 'Gasto') {
-      accountDisplay = t.cuenta_origen?.nombre || 'N/A';
-    } else if (t.tipo === 'Ingreso') {
-      accountDisplay = t.cuenta_destino?.nombre || 'N/A';
-    } else if (t.tipo === 'Transferencia') {
-      accountDisplay = `${t.cuenta_origen?.nombre || '?'} -> ${t.cuenta_destino?.nombre || '?'}`;
-    }
+          return (
+            <Table.Tr key={t.id}>
+              <Table.Td>{t.fecha}</Table.Td>
+              <Table.Td>{t.descripcion}</Table.Td>
+              <Table.Td>{t.categoria?.nombre || '-'}</Table.Td>
+              <Table.Td>{t.tipo}</Table.Td>
+              <Table.Td>{accountDisplay}</Table.Td>
+              <Table.Td><Badge color={t.estado === 'Confirmado' ? 'green' : 'yellow'}>{t.estado}</Badge></Table.Td>
+              <Table.Td style={{ textAlign: 'right' }}>${t.valor.toLocaleString()}</Table.Td>
+              <Table.Td 
+                style={{ 
+                  textAlign: 'right', 
+                  fontWeight: 'bold',
+                  color: currentRunningBalance >= 0 ? 'green' : '#fa5252'
+                }}
+              >
+                ${currentRunningBalance.toLocaleString()}
+              </Table.Td>
+              <Table.Td>
+                <Group spacing="xs">
+                  <Button variant="outline" color="blue" size="xs" onClick={() => handleEditClick(t)}>Editar</Button>
+                  <Button variant="outline" color="red" size="xs" onClick={() => handleDeleteClick(t)}>Eliminar</Button>
+                </Group>
+              </Table.Td>
+            </Table.Tr>
+          );
+        })}
+      </Table.Tbody>
+    </Table>
+  );
+  
+  // --- VISTA PARA MÓVIL (TARJETAS) ---
+  const MobileView = (
+    <Stack>
+      {sortedTransactions.map((t) => {
+        const currentRunningBalance = mobileRunningBalance;
+        if (t.tipo === 'Ingreso') {
+          mobileRunningBalance -= t.valor;
+        } else if (t.tipo === 'Gasto') {
+          mobileRunningBalance += t.valor;
+        }
 
-    return (
-    <Table.Tr key={t.id}>
-      <Table.Td>{t.fecha}</Table.Td>
-      <Table.Td>{t.descripcion}</Table.Td>
-      <Table.Td>{t.categoria?.nombre || '-'}</Table.Td>
-      <Table.Td>{t.tipo}</Table.Td>
-      <Table.Td>{accountDisplay}</Table.Td>
-      <Table.Td>
-        <Badge color={t.estado === 'Confirmado' ? 'green' : 'yellow'}>
-          {t.estado}
-        </Badge>
-      </Table.Td>
-      <Table.Td style={{ textAlign: 'right' }}>${t.valor.toLocaleString()}</Table.Td>
-      
-      {/* NUEVO: Se añade un estilo condicional para cambiar el color del saldo */}
-      <Table.Td 
-        style={{ 
-          textAlign: 'right', 
-          fontWeight: 'bold',
-          color: currentRunningBalance >= 0 ? 'green' : '#fa5252' // Verde para positivo/cero, rojo para negativo
-        }}
-      >
-        ${currentRunningBalance.toLocaleString()}
-      </Table.Td>
-      
-      <Table.Td>
-        {/* NUEVO: Se ha eliminado completamente el botón "Confirmar" de esta vista. */}
-        <Group spacing="xs">
-          <Button variant="outline" color="blue" size="xs" onClick={() => handleEditClick(t)}>
-            Editar
-          </Button>
-          <Button variant="outline" color="red" size="xs" onClick={() => handleDeleteClick(t)}>
-            Eliminar
-          </Button>
-        </Group>
-      </Table.Td>
-    </Table.Tr>
-  )});
+        let accountDisplay = '-';
+        if (t.tipo === 'Gasto') accountDisplay = t.cuenta_origen?.nombre || 'N/A';
+        else if (t.tipo === 'Ingreso') accountDisplay = t.cuenta_destino?.nombre || 'N/A';
+        else if (t.tipo === 'Transferencia') accountDisplay = `${t.cuenta_origen?.nombre || '?'} -> ${t.cuenta_destino?.nombre || '?'}`;
+
+        return (
+          <Card shadow="sm" padding="lg" radius="md" withBorder key={t.id}>
+            <Group position="apart" mb="xs">
+              <Text weight={500}>{t.descripcion}</Text>
+              <Badge color={t.tipo === 'Ingreso' ? 'teal' : 'red'} size="lg">
+                ${t.valor.toLocaleString()}
+              </Badge>
+            </Group>
+            
+            <Text size="sm" color="dimmed"><strong>Fecha:</strong> {t.fecha} | <strong>Tipo:</strong> {t.tipo}</Text>
+            <Text size="sm" color="dimmed"><strong>Categoría:</strong> {t.categoria?.nombre || '-'}</Text>
+            <Text size="sm" color="dimmed"><strong>Cuenta:</strong> {accountDisplay}</Text>
+            <Text component="div" size="sm" color="dimmed"> 
+              <strong>Estado:</strong> <Badge size="sm" color={t.estado === 'Confirmado' ? 'green' : 'yellow'}>{t.estado}</Badge>
+            </Text>
+
+            <Divider my="xs" />
+            <Group position="apart">
+              <Text size="sm" weight={500}>Saldo:</Text>
+              <Text 
+                weight={700} 
+                color={currentRunningBalance >= 0 ? 'green' : 'red'}
+              >
+                ${currentRunningBalance.toLocaleString()}
+              </Text>
+            </Group>
+
+            <Group position="right" mt="md">
+              <Button variant="outline" color="blue" size="xs" onClick={() => handleEditClick(t)}>Editar</Button>
+              <Button variant="outline" color="red" size="xs" onClick={() => handleDeleteClick(t)}>Eliminar</Button>
+            </Group>
+          </Card>
+        );
+      })}
+    </Stack>
+  );
 
   return (
     <Container size="xl" my="md">
       <Title order={1} mb="xl">Historial de Transacciones</Title>
-      <Table striped highlightOnHover>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>Fecha</Table.Th>
-            <Table.Th>Descripción</Table.Th>
-            <Table.Th>Categoría</Table.Th>
-            <Table.Th>Tipo</Table.Th>
-            <Table.Th>Cuenta</Table.Th>
-            <Table.Th>Estado</Table.Th>
-            <Table.Th style={{ textAlign: 'right' }}>Valor</Table.Th>
-            <Table.Th style={{ textAlign: 'right' }}>Saldo</Table.Th>
-            <Table.Th>Acciones</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>{rows}</Table.Tbody>
-      </Table>
       
+      {isMobile ? MobileView : DesktopView}
+
       <GenericModal
         isOpen={!!transactionToDelete || !!transactionToEdit}
         onRequestClose={() => {

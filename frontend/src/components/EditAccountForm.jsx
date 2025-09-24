@@ -5,7 +5,7 @@ import axiosInstance from '../api/axiosInstance';
 function EditAccountForm({ account, onAccountUpdated }) {
   const [nombre, setNombre] = useState(account.nombre);
   const [tipo, setTipo] = useState(account.tipo);
-  const [saldoInicial, setSaldoInicial] = useState(account.saldo_inicial);
+  const saldoInicial = account.saldo_inicial;
   const [error, setError] = useState(null);
 
   const handleSubmit = async (event) => {
@@ -14,8 +14,7 @@ function EditAccountForm({ account, onAccountUpdated }) {
     try {
       const updatedAccount = {
         nombre,
-        tipo,
-        saldo_inicial: parseFloat(saldoInicial),
+        tipo
       };
       await axiosInstance.put(`/cuentas/${account.id}`, updatedAccount);
       alert('¡Cuenta actualizada!');
@@ -31,7 +30,7 @@ function EditAccountForm({ account, onAccountUpdated }) {
         <Title order={3}>Editar Cuenta</Title>
         <TextInput label="Nombre" value={nombre} onChange={(e) => setNombre(e.currentTarget.value)} required />
         <TextInput label="Tipo" value={tipo} onChange={(e) => setTipo(e.currentTarget.value)} required />
-        <NumberInput label="Saldo Inicial" value={saldoInicial} onChange={setSaldoInicial} required precision={2} />
+        <NumberInput label="Saldo Inicial" value={saldoInicial} readOnly required precision={2} />
         {error && <Text color="red" size="sm">{error}</Text>}
         <Button type="submit" fullWidth mt="md">Guardar Cambios</Button>
       </Stack>

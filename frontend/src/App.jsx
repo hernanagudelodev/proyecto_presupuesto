@@ -1,19 +1,23 @@
 import { Outlet, useNavigate, NavLink } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
-import { AppShell, Group, Button, Title } from '@mantine/core'; // <-- Importamos componentes de layout
+// 1. Importamos los componentes necesarios para el menú móvil
+import { AppShell, Group, Button, Title, Burger, Drawer, Stack } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks'; // Hook para abrir/cerrar el menú
 
 function App() {
-  // El componente <Outlet /> es un marcador de posición.
-  // React Router lo reemplazará con el componente de la ruta actual.
-  const { token, logout } = useAuth(); // Obtenemos el token y la función logout del contexto
+  const { token, logout } = useAuth();
   const navigate = useNavigate();
+  
+  // 2. Estado para controlar si el menú móvil (Drawer) está abierto o cerrado
+  const [opened, { toggle, close }] = useDisclosure(false);
 
   const handleLogout = () => {
-    logout(); // Llama a la función logout del contexto
-    navigate('/login'); // Redirige al usuario al login
+    logout();
+    navigate('/login');
+    close(); // Cierra el menú móvil si está abierto al hacer logout
   };
 
-  // Estilos para los NavLink
+  // Estilos para los NavLink (sin cambios)
   const linkStyles = {
     padding: '10px 15px',
     textDecoration: 'none',
@@ -28,52 +32,47 @@ function App() {
   };
 
   return (
-    // <AppShell> es un componente de Mantine para la estructura principal de la app
-    <AppShell
-      padding="md"
-      // 1. La configuración del header ahora es un objeto
-      header={{ height: 60 }}
-    >
-      {/* 2. Usamos el sub-componente <AppShell.Header> */}
+    <AppShell padding="md" header={{ height: 60 }}>
       <AppShell.Header>
         <Group position="apart" sx={{ height: '100%' }} px="md">
-          <Title order={3}>Mi App de Presupuesto</Title>
+          {/* 3. Contenedor izquierdo del header */}
+          <Group>
+            {/* El Burger solo será visible si hay un token (usuario logueado) */}
+            {token && (
+              <Burger
+                opened={opened}
+                onClick={toggle}
+                hiddenFrom="sm" // <-- Se oculta en pantallas grandes (sm y superior)
+                size="sm"
+              />
+            )}
+            <Title order={3}>Mi App de Presupuesto</Title>
+          </Group>
 
+          {/* 4. Menú para escritorio: solo visible en pantallas grandes */}
           {token && (
-            <Group>
-              <NavLink 
-                to="/dashboard" 
-                style={({ isActive }) => isActive ? {...linkStyles, ...activeLinkStyles} : linkStyles}
-              >
-                Dashboard
-              </NavLink>
-              <NavLink 
-                to="/transactions" 
-                style={({ isActive }) => isActive ? {...linkStyles, ...activeLinkStyles} : linkStyles}
-              >
-                Historial
-              </NavLink>
-              <NavLink 
-                to="/rules" 
-                style={({ isActive }) => isActive ? {...linkStyles, ...activeLinkStyles} : linkStyles}
-              >
-                Reglas Recurrentes
-              </NavLink>
-              <NavLink 
-                to="/configuration" 
-                style={({ isActive }) => isActive ? {...linkStyles, ...activeLinkStyles} : linkStyles}
-              >
-                Configuración
-              </NavLink>
-              <Button variant="outline" onClick={handleLogout}>
-                Cerrar Sesión
-              </Button>
+            <Group visibleFrom="sm"> {/* <-- Se muestra en pantallas grandes */}
+              <NavLink to="/dashboard" style={({ isActive }) => isActive ? {...linkStyles, ...activeLinkStyles} : linkStyles}>Dashboard</NavLink>
+              <NavLink to="/transactions" style={({ isActive }) => isActive ? {...linkStyles, ...activeLinkStyles} : linkStyles}>Historial</NavLink>
+              <NavLink to="/rules" style={({ isActive }) => isActive ? {...linkStyles, ...activeLinkStyles} : linkStyles}>Reglas Recurrentes</NavLink>
+              <NavLink to="/configuration" style={({ isActive }) => isActive ? {...linkStyles, ...activeLinkStyles} : linkStyles}>Configuración</NavLink>
+              <Button variant="outline" onClick={handleLogout}>Cerrar Sesión</Button>
             </Group>
           )}
         </Group>
       </AppShell.Header>
 
-      {/* 3. El contenido principal ahora va dentro de <AppShell.Main> */}
+      {/* 5. Menú lateral (Drawer) para móvil */}
+      <Drawer opened={opened} onClose={close} title="Menú" size="sm">
+        <Stack>
+          <NavLink to="/dashboard" style={({ isActive }) => isActive ? {...linkStyles, ...activeLinkStyles} : linkStyles} onClick={close}>Dashboard</NavLink>
+          <NavLink to="/transactions" style={({ isActive }) => isActive ? {...linkStyles, ...activeLinkStyles} : linkStyles} onClick={close}>Historial</NavLink>
+          <NavLink to="/rules" style={({ isActive }) => isActive ? {...linkStyles, ...activeLinkStyles} : linkStyles} onClick={close}>Reglas Recurrentes</NavLink>
+          <NavLink to="/configuration" style={({ isActive }) => isActive ? {...linkStyles, ...activeLinkStyles} : linkStyles} onClick={close}>Configuración</NavLink>
+          <Button variant="outline" onClick={handleLogout} mt="md">Cerrar Sesión</Button>
+        </Stack>
+      </Drawer>
+
       <AppShell.Main>
         <Outlet />
       </AppShell.Main>

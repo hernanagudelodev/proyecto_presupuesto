@@ -9,7 +9,7 @@ class CuentaBase(BaseModel):
 class CuentaUpdate(BaseModel):
     nombre: Optional[str] = None
     tipo: Optional[str] = None
-    saldo_inicial: Optional[float] = None
+    # saldo_inicial: Optional[float] = None
     
 class CuentaCreate(CuentaBase):
     pass
