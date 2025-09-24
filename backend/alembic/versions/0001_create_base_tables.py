@@ -57,6 +57,23 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_cuentas_id'), 'cuentas', ['id'], unique=False)
 
+    # ### Create reglas_recurrentes table ### (ESTA ES LA TABLA QUE FALTABA)
+    op.create_table('reglas_recurrentes',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('descripcion', sa.String(), nullable=False),
+    sa.Column('valor_predeterminado', sa.Float(), nullable=False),
+    sa.Column('tipo', sa.String(), nullable=False),
+    sa.Column('frecuencia', sa.String(), nullable=False),
+    sa.Column('dia', sa.Integer(), nullable=True),
+    sa.Column('mes', sa.Integer(), nullable=True),
+    sa.Column('categoria_predeterminada_id', sa.Integer(), nullable=True),
+    sa.Column('usuario_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['categoria_predeterminada_id'], ['categorias.id'], ),
+    sa.ForeignKeyConstraint(['usuario_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_reglas_recurrentes_id'), 'reglas_recurrentes', ['id'], unique=False)
+
     # ### Create transacciones table ###
     op.create_table('transacciones',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -64,6 +81,8 @@ def upgrade() -> None:
     sa.Column('valor', sa.Float(), nullable=False),
     sa.Column('tipo', sa.String(), nullable=False),
     sa.Column('descripcion', sa.String(), nullable=True),
+    sa.Column('estado', sa.String(), nullable=False, server_default='Confirmado'),
+    sa.Column('regla_recurrente_id', sa.Integer(), nullable=True),
     sa.Column('categoria_id', sa.Integer(), nullable=True),
     sa.Column('cuenta_origen_id', sa.Integer(), nullable=True),
     sa.Column('cuenta_destino_id', sa.Integer(), nullable=True),
@@ -71,15 +90,20 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['categoria_id'], ['categorias.id'], ),
     sa.ForeignKeyConstraint(['cuenta_destino_id'], ['cuentas.id'], ),
     sa.ForeignKeyConstraint(['cuenta_origen_id'], ['cuentas.id'], ),
+    sa.ForeignKeyConstraint(['regla_recurrente_id'], ['reglas_recurrentes.id'], ),
     sa.ForeignKeyConstraint(['usuario_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_transacciones_id'), 'transacciones', ['id'], unique=False)
+    op.create_index(op.f('ix_transacciones_estado'), 'transacciones', ['estado'], unique=False)
 
 
 def downgrade() -> None:
+    op.drop_index(op.f('ix_transacciones_estado'), table_name='transacciones')
     op.drop_index(op.f('ix_transacciones_id'), table_name='transacciones')
     op.drop_table('transacciones')
+    op.drop_index(op.f('ix_reglas_recurrentes_id'), table_name='reglas_recurrentes')
+    op.drop_table('reglas_recurrentes')
     op.drop_index(op.f('ix_cuentas_id'), table_name='cuentas')
     op.drop_table('cuentas')
     op.drop_index(op.f('ix_categorias_id'), table_name='categorias')
