@@ -1,27 +1,55 @@
-/* Contenedor principal de la grilla */
+/* frontend/src/pages/Dashboard.module.css */
+
 .gridContainer {
   display: grid;
-  grid-template-columns: 1fr; /* Móvil: 1 columna por defecto */
   gap: var(--mantine-spacing-lg);
-  align-items: stretch; /* Clave: hace que las columnas tengan la misma altura */
+  /* Layout para móvil: una sola columna apilada */
+  grid-template-areas:
+    'chart1'
+    'chart2'
+    'accounts'
+    'transactions';
 }
 
-/* Solo para pantallas de 768px o más */
-@media (min-width: 768px) {
+/* Solo en pantallas de 1024px o más, aplicamos el layout de escritorio */
+@media (min-width: 1024px) {
   .gridContainer {
-    grid-template-columns: 7fr 5fr; /* Desktop: proporción 7/5 */
+    /* Definimos dos columnas con proporción 7 a 5 */
+    grid-template-columns: 7fr 5fr;
+    /* Definimos explícitamente la ubicación de cada área en la grilla */
+    grid-template-areas:
+      'chart1 chart2'
+      'accounts transactions';
   }
 }
 
-/* Estilo para ambas tarjetas */
-.card {
-  display: flex; /* ¡La clave #1! Convierte la tarjeta en un contenedor flexible */
-  flex-direction: column; /* Apila los elementos hijos verticalmente */
-  height: 100%; /* Asegura que la tarjeta intente ocupar toda la altura de la celda */
+/* Asignamos cada componente a su área en la grilla */
+.chart1Area {
+  grid-area: chart1;
 }
 
-/* Estilo para la sección de la lista dentro de la tarjeta */
+.chart2Area {
+  grid-area: chart2;
+}
+
+.accountsArea {
+  grid-area: accounts;
+}
+
+.transactionsArea {
+  grid-area: transactions;
+}
+
+/* Estilo para TODAS las tarjetas */
+.card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Estilo para que el contenido de la lista crezca y ocupe el espacio */
 .cardBody {
-  flex-grow: 1; /* ¡La clave #2! Hace que esta sección crezca y ocupe el espacio sobrante */
+  flex-grow: 1; /* Esta es la clave para que la tarjeta se estire */
   padding-top: var(--mantine-spacing-sm);
+  overflow-y: auto; /* Scroll si el contenido es muy largo */
 }

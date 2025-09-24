@@ -7,6 +7,7 @@ from app.api.api_cuenta       import router as cuenta_router
 from app.api.api_categoria    import router as categoria_router
 from app.api.api_transaccion  import router as transaccion_router
 from app.api.api_regla_recurrente import router as regla_router
+from app.api.api_dashboard import router as dashboard_router
 
 from app.auth            import fastapi_users
 from app.auth.jwt        import auth_backend
@@ -37,6 +38,7 @@ app.include_router(cuenta_router)
 app.include_router(categoria_router)
 app.include_router(transaccion_router)
 app.include_router(regla_router)
+app.include_router(dashboard_router)
 
 # 1. Login JWT (solo usuarios verificados)
 app.include_router(
