@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from dotenv import load_dotenv
+import os
 from fastapi.middleware.cors import CORSMiddleware
 
 # from app.api.api_usuario      import router as usuario_router -- se reemplaza por FastAPI Users
@@ -19,15 +20,17 @@ load_dotenv(dotenv_path="../.env")  # carga tus vars de entorno
 
 app = FastAPI()
 
-# Configuración de CORS
+# Lee los orígenes permitidos desde una variable de entorno
+# El valor por defecto ("http://localhost:5173") es para seguir trabajando en local
+origins = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # El origen de tu frontend de React
+    allow_origins=origins, # Usa la lista de orígenes que acabamos de leer
     allow_credentials=True,
-    allow_methods=["*"],  # Permite todos los métodos (GET, POST, etc.)
-    allow_headers=["*"],  # Permite todos los encabezados
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
-# -----------------------------------
 
 @app.get("/")
 def read_root():
