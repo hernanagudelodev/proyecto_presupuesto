@@ -9,6 +9,9 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 # Asegúrate que la url es tipo 'sqlite+aiosqlite:///ruta' o 'postgresql+asyncpg://...'
 
+if DATABASE_URL and DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+
 engine = create_async_engine(
     DATABASE_URL, echo=False  # Puedes quitar echo=True en producción
 )

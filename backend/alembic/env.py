@@ -22,7 +22,13 @@ from app.db.base import Base
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
 
 db_url = os.getenv("DATABASE_URL")
-# --- FIN LECTURA .env ---
+
+# --- ¡AQUÍ ESTÁ LA MISMA CORRECCIÓN! ---
+# Si la URL es de Postgres, nos aseguramos de que use el driver asyncpg
+if db_url and db_url.startswith("postgresql://"):
+    db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+# --- FIN DE LA CORRECCIÓN ---
+
 
 # this is the Alembic Config object, which provides access to the values within the .ini file in use.
 config = context.config
@@ -37,12 +43,6 @@ if config.config_file_name is not None:
 
 # Define el target_metadata para el autogenerate
 target_metadata = Base.metadata
-
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
-
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
@@ -67,7 +67,6 @@ def do_run_migrations(connection):
 
 async def run_migrations_online() -> None:
     """Función principal asíncrona para ejecutar las migraciones."""
-    # Obtenemos el motor a partir de la configuración
     connectable = AsyncEngine(
         engine_from_config(
             config.get_section(config.config_ini_section, {}),
@@ -76,18 +75,13 @@ async def run_migrations_online() -> None:
         )
     )
 
-    # Nos conectamos de forma asíncrona
     async with connectable.connect() as connection:
-        # Le pedimos a la conexión que ejecute nuestra función auxiliar
         await connection.run_sync(do_run_migrations)
 
-    # Liberamos los recursos del motor
     await connectable.dispose()
 
 
-# Bloque final de ejecución
 if context.is_offline_mode():
     run_migrations_offline()
 else:
-    # Usamos asyncio.run() para ejecutar nuestra nueva función asíncrona
     asyncio.run(run_migrations_online())
