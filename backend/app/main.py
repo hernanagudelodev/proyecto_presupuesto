@@ -8,6 +8,7 @@ from app.api.api_categoria    import router as categoria_router
 from app.api.api_transaccion  import router as transaccion_router
 from app.api.api_regla_recurrente import router as regla_router
 from app.api.api_dashboard import router as dashboard_router
+from app.api.api_user import router as user_admin_router
 
 from app.auth            import fastapi_users
 from app.auth.jwt        import auth_backend
@@ -39,6 +40,7 @@ app.include_router(categoria_router)
 app.include_router(transaccion_router)
 app.include_router(regla_router)
 app.include_router(dashboard_router)
+app.include_router(user_admin_router)
 
 # 1. Login JWT (solo usuarios verificados)
 app.include_router(
@@ -68,9 +70,10 @@ app.include_router(
     tags=["auth"],
 )  # expone /auth/forgot-password y /auth/reset-password :contentReference[oaicite:5]{index=5}
 
+
 # 5. CRUD de usuarios
 app.include_router(
     fastapi_users.get_users_router(UserRead, UserUpdate),
     prefix="/users",
     tags=["users"],
-)  # endpoints protegidos para gestión de usuarios :contentReference[oaicite:6]{index=6}
+)

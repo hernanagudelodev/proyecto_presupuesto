@@ -12,6 +12,7 @@
   "dependencies": {
     "@mantine/core": "^8.3.1",
     "@mantine/hooks": "^8.3.1",
+    "@tabler/icons-react": "^3.35.0",
     "@types/react-modal": "^3.16.3",
     "axios": "^1.12.2",
     "postcss": "^8.5.6",

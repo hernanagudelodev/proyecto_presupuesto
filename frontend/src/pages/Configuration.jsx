@@ -1,18 +1,17 @@
+// frontend/src/pages/Configuration.jsx
 import { NavLink, Outlet } from 'react-router-dom';
 import { Container, Title, Tabs } from '@mantine/core';
+import { useAuth } from '../context/AuthContext'; // <-- 1. Importamos el hook useAuth
 
-// Este componente es un "layout" para la sección de configuración.
-// Muestra un título y las pestañas de navegación, y luego usa <Outlet>
-// para renderizar la página hija activa (Cuentas o Categorías).
 function Configuration() {
+  const { user } = useAuth(); // <-- 2. Obtenemos el usuario del contexto
+
   return (
     <Container size="lg" my="md">
       <Title order={1} mb="xl">Configuración</Title>
 
-      {/* Usamos el componente Tabs de Mantine para la navegación interna */}
       <Tabs defaultValue="accounts">
         <Tabs.List>
-          {/* Cada pestaña es un NavLink para que se integre con el router */}
           <Tabs.Tab value="accounts" component={NavLink} to="/configuration/accounts">
             Cuentas
           </Tabs.Tab>
@@ -20,12 +19,19 @@ function Configuration() {
             Categorías
           </Tabs.Tab>
           <Tabs.Tab value="user" component={NavLink} to="/configuration/user">
-            Usuario
+            Mi Perfil
           </Tabs.Tab>
+
+          {/* 3. Lógica condicional: esta pestaña solo se renderiza si user.is_superuser es true */}
+          {user && user.is_superuser && (
+            <Tabs.Tab value="users" component={NavLink} to="/configuration/users">
+              Usuarios (Admin)
+            </Tabs.Tab>
+          )}
+
         </Tabs.List>
       </Tabs>
 
-      {/* El <Outlet> renderizará aquí ManageAccounts o ManageCategories */}
       <main style={{ paddingTop: '2rem' }}>
         <Outlet />
       </main>

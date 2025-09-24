@@ -18,6 +18,7 @@ import ManageAccounts from './pages/ManageAccounts'; // NUEVO
 import ManageCategories from './pages/ManageCategories'; // NUEVO
 import Configuration from './pages/Configuration.jsx'; 
 import ManageUser from './pages/ManageUser';
+import ManageUsers from './pages/ManageUsers';
 import ResetPassword from './pages/ResetPassword';
 import Register from './pages/Register.jsx';
 import VerifyEmail from './pages/VerifyEmail.jsx';
@@ -79,6 +80,7 @@ const router = createBrowserRouter([
               { path: 'accounts', element: <ManageAccounts /> },
               { path: 'categories', element: <ManageCategories /> },
               { path: 'user', element: <ManageUser /> },
+              { path: 'users', element: <ManageUsers /> }, // <-- Nueva ruta protegida (solo admins)
             ]
           },
           // Si en el futuro tienes más rutas protegidas, irían aquí

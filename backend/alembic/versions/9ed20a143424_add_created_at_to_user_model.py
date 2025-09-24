@@ -1,6 +1,7 @@
 """add created_at to user model
 
-Revises: ...
+Revision ID: 9ed20a143424
+Revises: e845ef126c54
 Create Date: ...
 
 """
@@ -11,17 +12,21 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '9ed20a143424' # <-- This will be different for you
-down_revision: Union[str, Sequence[str], None] = 'e845ef126c54' # <-- This will be different for you
+revision: str = '9ed20a143424'
+down_revision: Union[str, Sequence[str], None] = 'e845ef126c54'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
     """Upgrade schema."""
-    op.add_column('users', sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=True))
+    # ### Usamos el modo por lotes para añadir la columna de forma segura ###
+    with op.batch_alter_table('users', schema=None) as batch_op:
+        batch_op.add_column(sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=True))
 
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.drop_column('users', 'created_at')
+    # ### Revertimos los cambios también en modo por lotes ###
+    with op.batch_alter_table('users', schema=None) as batch_op:
+        batch_op.drop_column('created_at')
