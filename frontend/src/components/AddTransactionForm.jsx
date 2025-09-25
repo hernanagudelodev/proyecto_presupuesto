@@ -70,10 +70,19 @@ function AddTransactionForm({ accounts, categories, onTransactionAdded }) {
       alert('¡Transacción creada exitosamente!');
       onTransactionAdded(); // Avisamos al Dashboard que todo salió bien
     } catch (err) {
-      // CORRECCIÓN: Se extrae y muestra solo el mensaje de error legible.
-      const errorMessage = err.response?.data?.detail || 'No se pudo crear la transacción.';
+      let errorMessage = 'No se pudo crear la transacción. Revisa los campos.';
+      const errorDetail = err.response?.data?.detail;
+
+      if (typeof errorDetail === 'string') {
+        // Si el error es un texto simple
+        errorMessage = errorDetail;
+      } else if (Array.isArray(errorDetail) && errorDetail.length > 0) {
+        // Si el error es una lista de errores de validación de FastAPI/Pydantic
+        errorMessage = errorDetail[0].msg || errorMessage;
+      }
+      
       setError(errorMessage);
-      console.error(err);
+      console.error("Error completo:", err.response?.data || err);
     }
   };
 
