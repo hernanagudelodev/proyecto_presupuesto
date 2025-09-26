@@ -1,117 +1,59 @@
 # 💰 Budget App – Full-Stack Personal Finance Platform
 
-**Status:** 🚀 Actively in Development
+**Status:** ✅ Deployed to Production | 🚀 Actively in Development
 
-A full-stack personal finance application featuring a robust **FastAPI** backend and a modern **React** frontend. This project is designed to showcase a scalable, secure, and feature-rich web application architecture.
+A full-stack personal finance application featuring a robust **FastAPI** backend and a modern **React** frontend, deployed on **Railway**! This project is designed to showcase a scalable, secure, and feature-rich web application architecture.
 
-## 📌 Overview
+## 🌐 Live Demo
 
-**Budget App** provides a comprehensive solution for personal and multi-user budget management. The backend exposes a secure RESTful API for handling accounts, categories, and transactions, while the React frontend delivers a responsive and intuitive user interface for interacting with the financial data.
+You can test the live application here: **[https://frontend-production-e146.up.railway.app/]**
 
-The long-term vision is to evolve this platform into a powerful budgeting tool with AI-assisted insights, including natural language transaction entry and predictive cash flow analysis.
+_(Note: New user registration is enabled.)_
 
 ---
 
 ## ✨ Key Features
 
 ### ✅ Backend (FastAPI)
-- **Complete User Management**: Secure user registration, JWT-based authentication, email verification, password recovery, and profile management powered by `fastapi-users`.
-- **Accounts Module**: Full CRUD functionality for managing multiple user accounts (e.g., Bank, Cash, Credit Card).
-- **Categories Module**: Flexible system for creating and managing personalized income and expense categories.
-- **Transactions Module**: API endpoints to record, retrieve, update, and delete transactions linked to specific accounts and categories.
-- **Data Security**: Strict data isolation ensuring users can only access their own financial information.
-- **Automated API Documentation**: Interactive OpenAPI (Swagger UI) and ReDoc documentation generated automatically by FastAPI.
+- **Complete User Management:** Secure registration, JWT-based authentication, email verification, and password recovery, all powered by `fastapi-users`.
+- **Asynchronous Email Notifications:** Reliable transactional email delivery integrated with **SendGrid**.
+- **Accounts Module:** Full CRUD functionality for managing multiple user accounts (e.g., Bank, Cash, Credit Card) with real-time balance calculation.
+- **Categories Module:** Flexible system for creating and managing personalized income and expense categories.
+- **Transactions Module:** Endpoints to record, read, update, and delete transactions, linked to accounts and categories.
+- **Recurring Rules Engine:** Allows users to create rules (e.g., "monthly salary," "rent payment") to automatically generate planned transactions.
+- **Admin Panel:** Secure endpoints for a superuser to list and modify other users' data.
+- **Data Security:** Strict data isolation ensuring users can only access their own financial information.
+- **Automated API Documentation:** Interactive OpenAPI (Swagger UI) and ReDoc documentation generated automatically.
 
-### 🟡 Frontend (React)
-- **Modern Tech Stack**: Built with React and Vite for a fast, efficient development experience.
-- **Client-Side Routing**: Seamless navigation between public and private pages using `react-router-dom`.
-- **State Management**: Global authentication state managed with React's Context API, ensuring a consistent user session.
-- **Protected Routes**: Secure dashboard area accessible only to authenticated users.
-- **Component-Based UI**:
-    - Functional Login/Logout flow.
-    - Reusable modal component for forms.
-    - Dynamic data fetching and rendering for user accounts and categories.
-    - Forms for creating new accounts and categories with real-time UI updates.
+### ✅ Frontend (React)
+- **Modern Tech Stack:** Built with React and Vite for a fast and efficient development experience.
+- **Responsive Design:** The interface is adaptable for both desktop and mobile, thanks to **Mantine UI**.
+- **Client-Side Routing:** Seamless navigation between public and private pages using `react-router-dom`.
+- **Global State Management:** Authentication state is managed with React's Context API, ensuring a consistent user session.
+- **Protected Routes:** Secure dashboard area accessible only to authenticated users.
+- **Interactive Dashboard:** Dynamic charts (income vs. expenses, expenses by category) for intuitive financial visualization.
+- **Full CRUD Functionality:**
+    - Functional Login/Register/Logout/Verification flow.
+    - Reusable components to manage Accounts, Categories, Transactions, and Recurring Rules.
+    - Modal-based forms for a clean user experience.
+- **User Admin Panel:** UI for superusers to manage the platform's user profiles.
 
 ---
 
 ## 🛠️ Tech Stack
 
 - **Backend:** Python, FastAPI
-- **Frontend:** React, Vite, Axios
-- **Database:** SQLite (Development), PostgreSQL (Production Target)
+- **Frontend:** React, Vite, Axios, Mantine UI
+- **Database:** PostgreSQL (Production), SQLite (Development)
 - **Authentication:** JWT (`fastapi-users`)
-- **API Documentation:** OpenAPI / Swagger UI
-- **Deployment (Planned):** Docker, CI/CD
-
----
-
-## 🗺️ Project Roadmap
-
-### Phase 1 – Frontend Development (In Progress 🟡)
-- **Goal:** Build a complete, functional user interface on top of the existing backend API.
-- **Tasks:**
-    - [x] Authentication Flow (Login/Logout, Global Context)
-    - [x] Protected Routes
-    - [x] View & Create User Accounts
-    - [x] View & Create User Categories
-    - [ ] **Next:** Implement full CRUD for Transactions.
-    - [ ] Enhance the UI/UX with a component library and improved styling.
-    - [ ] Develop the Budgets module frontend.
-
-### Phase 2 – Predictive Cash Flow (Planned ⚪)
-- **Goal:** Integrate financial forecasting features.
-- **Tasks:**
-    - Forecast future account balances based on recurring transactions.
-    - Implement graphical representations of expected cash flow.
-
-### Phase 3 – AI Integration (Planned ⚪)
-- **Goal:** Leverage AI to provide intelligent financial assistance.
-- **Tasks:**
-    - AI assistant for monitoring spending against budgets.
-    - Natural language transaction entry (e.g., "spent $5 on coffee").
-    - Smart recommendations for savings and expense optimization.
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Python 3.10+
-- Node.js and npm
-
-### Installation & Setup
-
-1.  **Clone the repository:**
-    ```bash
-    git clone [https://github.com/hernanagudelodev/proyecto_presupuesto.git](https://github.com/hernanagudelodev/proyecto_presupuesto.git)
-    cd proyecto_presupuesto
-    ```
-
-2.  **Backend Setup (FastAPI):**
-    ```bash
-    cd backend
-    python -m venv venv
-    source venv/bin/activate  # On Windows: venv\Scripts\activate
-    pip install -r requirements.txt
-    # Create a .env file from .env.example and set your variables
-    alembic upgrade head
-    uvicorn app.main:app --reload
-    ```
-
-3.  **Frontend Setup (React):**
-    ```bash
-    cd frontend
-    npm install
-    npm run dev
-    ```
-The React app will be available at `http://localhost:5173`.
+- **Email Delivery:** SendGrid
+- **Deployment:** Railway
 
 ---
 
 ## 📖 API Documentation
 
-Once the backend server is running, interactive API documentation is available at:
+Once the backend server is running locally, interactive API documentation is available at:
 - **Swagger UI:** `http://localhost:8000/docs`
 - **ReDoc:** `http://localhost:8000/redoc`
 
@@ -123,5 +65,5 @@ This project is licensed under the MIT License – see the [LICENSE](LICENSE) fi
 ---
 
 ## 📬 Contact
-**Hernán Agudelo López** 📧 hernanagudelodev@gmail.com  
+**Hernán Agudelo López** 📧 hernanagudelodev@gmail.com
 🔗 [LinkedIn](https://www.linkedin.com/in/hernan-agudelo) | [GitHub](https://github.com/hernanagudelodev)
