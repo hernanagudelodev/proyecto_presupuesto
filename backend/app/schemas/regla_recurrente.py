@@ -33,3 +33,8 @@ class ReglaRecurrenteResponse(ReglaRecurrenteBase):
 
     class Config:
         from_attributes = True
+
+# --- NUEVO SCHEMA ---
+class GeneracionResponse(BaseModel):
+    transacciones_generadas: int
+

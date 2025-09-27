@@ -50,7 +50,8 @@ function RecurringRules() {
   const handleGeneratePlanned = async () => {
     try {
       const response = await axiosInstance.post(`/reglas-recurrentes/generar-transacciones/${planningYear}/${planningMonth}`);
-      const count = response.data.length;
+      // ¡AQUÍ ESTÁ EL CAMBIO! Leemos la propiedad `transacciones_generadas`
+      const count = response.data.transacciones_generadas; 
       alert(`¡${count} transacciones planeadas para ${planningMonth}/${planningYear} generadas exitosamente!`);
       setModalContent(null);
     } catch (err) {

@@ -3,6 +3,8 @@ import { useAuth } from './context/AuthContext';
 // 1. Importamos los componentes necesarios para el menú móvil
 import { AppShell, Group, Button, Title, Burger, Drawer, Stack } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks'; // Hook para abrir/cerrar el menú
+// Nuevo import para el botón flotante
+import GlobalAddTransactionButton from './components/GlobalAddTransactionButton';
 
 function App() {
   const { token, logout } = useAuth();
@@ -76,6 +78,9 @@ function App() {
       <AppShell.Main>
         <Outlet />
       </AppShell.Main>
+      {/* 2. Añadimos el botón flotante aquí */}
+      {/* Solo se mostrará si el usuario ha iniciado sesión (si existe un token) */}
+      {token && <GlobalAddTransactionButton />}
     </AppShell>
   );
 }

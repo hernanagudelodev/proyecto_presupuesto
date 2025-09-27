@@ -27,8 +27,13 @@ async def get_cuentas_by_usuario(db: AsyncSession, usuario_id: int, skip: int = 
     # pero SQLAlchemy es lo suficientemente inteligente como para saber que,
     # como 'saldo_actual' está en el esquema de respuesta, debe calcularlo.
     # La 'hybrid_property' hace todo el trabajo pesado por nosotros.
+    # Añadimos .order_by(Cuenta.nombre) para ordenar alfabéticamente
     result = await db.execute(
-        select(Cuenta).where(Cuenta.usuario_id == usuario_id).offset(skip).limit(limit)
+        select(Cuenta)
+        .where(Cuenta.usuario_id == usuario_id)
+        .order_by(Cuenta.nombre) # <-- LÍNEA AÑADIDA
+        .offset(skip)
+        .limit(limit)
     )
     return result.scalars().all()
 

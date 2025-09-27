@@ -4,6 +4,7 @@ from typing import List, Optional
 import calendar
 from datetime import date
 from app.models.transaccion import Transaccion # Importante para la validación
+from sqlalchemy.orm import selectinload # Importante para la validación
 from sqlalchemy import delete, extract
 from app.models.regla_recurrente import ReglaRecurrente
 from app.schemas.regla_recurrente import ReglaRecurrenteCreate, ReglaRecurrenteUpdate
@@ -125,8 +126,11 @@ async def generar_transacciones_planeadas(db: AsyncSession, usuario_id: int, yea
                     regla_recurrente_id=regla.id
                 ))
 
-    if nuevas_transacciones:
-        db.add_all(nuevas_transacciones)
-        await db.commit()
+    if not nuevas_transacciones:
+        return 0
 
-    return nuevas_transacciones
+    db.add_all(nuevas_transacciones)
+    await db.commit()
+    
+    # Simplemente devolvemos la cantidad de transacciones en la lista
+    return len(nuevas_transacciones)

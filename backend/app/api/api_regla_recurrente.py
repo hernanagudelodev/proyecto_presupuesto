@@ -6,8 +6,7 @@ from app.db.session import get_async_session
 from app.models.usuario import User
 from app.auth import current_active_user
 import app.crud.crud_regla_recurrente as crud
-from app.schemas.regla_recurrente import ReglaRecurrenteCreate, ReglaRecurrenteResponse, ReglaRecurrenteUpdate
-from app.schemas.transaccion import TransaccionResponse
+from app.schemas.regla_recurrente import ReglaRecurrenteCreate, ReglaRecurrenteResponse, ReglaRecurrenteUpdate, GeneracionResponse
 
 # Creamos un nuevo router
 router = APIRouter(prefix="/reglas-recurrentes", tags=["reglas-recurrentes"])
@@ -59,7 +58,7 @@ async def eliminar_regla_recurrente(
     # Si se elimina con éxito, no se devuelve contenido
     return
 
-@router.post("/generar-transacciones/{year}/{month}", response_model=List[TransaccionResponse])
+@router.post("/generar-transacciones/{year}/{month}", response_model=GeneracionResponse)
 async def generar_transacciones_del_mes(
     year: int,
     month: int,
@@ -69,7 +68,9 @@ async def generar_transacciones_del_mes(
     if not 1 <= month <= 12:
         raise HTTPException(status_code=400, detail="El mes debe estar entre 1 y 12.")
 
-    transacciones_generadas = await crud.generar_transacciones_planeadas(
+    # La función crud ahora devuelve un número
+    count = await crud.generar_transacciones_planeadas(
         db=db, usuario_id=user.id, year=year, month=month
     )
-    return transacciones_generadas
+    # Devolvemos el objeto con el formato correcto
+    return GeneracionResponse(transacciones_generadas=count)

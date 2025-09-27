@@ -14,8 +14,13 @@ async def get_categoria(db: AsyncSession, categoria_id: int, usuario_id: int) ->
     return result.scalar_one_or_none()
 
 async def get_categorias_by_usuario(db: AsyncSession, usuario_id: int, skip=0, limit=100) -> List[Categoria]:
+    # Añadimos .order_by(Categoria.nombre) para ordenar alfabéticamente
     result = await db.execute(
-        select(Categoria).where(Categoria.usuario_id == usuario_id).offset(skip).limit(limit)
+        select(Categoria)
+        .where(Categoria.usuario_id == usuario_id)
+        .order_by(Categoria.nombre) # <-- LÍNEA AÑADIDA
+        .offset(skip)
+        .limit(limit)
     )
     return result.scalars().all()
 
