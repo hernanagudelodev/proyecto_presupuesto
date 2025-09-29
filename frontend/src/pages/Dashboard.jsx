@@ -31,7 +31,7 @@ function Dashboard() {
       const [accRes, catRes, transRes, summaryRes, categoryRes] = await Promise.all([
         axiosInstance.get('/cuentas/'),
         axiosInstance.get('/categorias/'),
-        axiosInstance.get('/transacciones/?limit=10'),
+        axiosInstance.get('/transacciones/latest/'), // Usamos el nuevo endpoint
         axiosInstance.get(`/dashboard/resumen-mensual/${year}`),
         axiosInstance.get(`/dashboard/gastos-por-categoria/${year}/${month}`)
       ]);

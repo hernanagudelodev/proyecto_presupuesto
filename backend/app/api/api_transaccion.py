@@ -1,7 +1,9 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import date
 from app.db.session import get_async_session
-from app.schemas.transaccion import TransaccionCreate, TransaccionResponse, TransaccionUpdate
+from app.schemas.transaccion import TransaccionCreate, TransaccionResponse, TransaccionUpdate, TransaccionPeriodResponse
 from app.models.usuario import User
 from app.auth import current_active_user
 import app.crud.crud_transaccion as crud
@@ -17,13 +19,40 @@ async def crear_transaccion(
 ):
     return await crud.create_transaccion(db, transaccion, user.id)
 
-# Listar transacciones del usuario autenticado
-@router.get("/", response_model=list[TransaccionResponse])
-async def listar_transacciones_usuario(
+# ---  ENDPOINT PARA TRANSACCIONES EN EL DASHBOARD --
+@router.get("/latest/", response_model=List[TransaccionResponse])
+async def listar_ultimas_transacciones(
     db: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    return await crud.get_transacciones_by_usuario(db, user.id)
+    """
+    Obtiene las últimas 10 transacciones confirmadas para el dashboard.
+    """
+    return await crud.get_latest_confirmed_transactions(db=db, usuario_id=user.id, limit=10)
+
+# --- ENDPOINT PARA FILTRAR POR PERÍODO PARA EL HISTORIAL ---
+@router.get("/", response_model=TransaccionPeriodResponse)
+async def listar_transacciones_periodo(
+    start_date: date,
+    end_date: date,
+    db: AsyncSession = Depends(get_async_session),
+    user: User = Depends(current_active_user),
+):
+    """
+    Obtiene todas las transacciones de un usuario dentro de un rango de fechas
+    y calcula el saldo total justo antes de la fecha de inicio.
+    """
+    if start_date > end_date:
+        raise HTTPException(status_code=400, detail="La fecha de inicio no puede ser posterior a la fecha de fin.")
+    
+    # Llamamos la función del crud
+    period_data = await crud.get_transactions_with_starting_balance(
+        db=db,
+        usuario_id=user.id,
+        start_date=start_date,
+        end_date=end_date
+    )
+    return period_data
 
 # Obtener una transacción por ID
 @router.get("/{transaccion_id}", response_model=TransaccionResponse)

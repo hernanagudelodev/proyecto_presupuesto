@@ -1,5 +1,5 @@
 from pydantic import BaseModel, model_validator
-from typing import Optional, Any
+from typing import List, Optional, Any
 from datetime import date
 from .cuenta import CuentaSimple
 from .categoria import CategoriaSimple
@@ -74,3 +74,6 @@ class TransaccionUpdate(TransaccionBase):
     tipo: Optional[str] = None
     estado: Optional[str] = None
 
+class TransaccionPeriodResponse(BaseModel):
+    saldo_inicial_periodo: float
+    transacciones: List[TransaccionResponse]
