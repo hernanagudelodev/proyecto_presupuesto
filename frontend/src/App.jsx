@@ -5,6 +5,7 @@ import { AppShell, Group, Button, Title, Burger, Drawer, Stack } from '@mantine/
 import { useDisclosure } from '@mantine/hooks'; // Hook para abrir/cerrar el menú
 // Nuevo import para el botón flotante
 import GlobalAddTransactionButton from './components/GlobalAddTransactionButton';
+import GlobalBalanceIndicator from './components/GlobalBalanceIndicator';
 
 function App() {
   const { token, logout } = useAuth();
@@ -80,7 +81,12 @@ function App() {
       </AppShell.Main>
       {/* 2. Añadimos el botón flotante aquí */}
       {/* Solo se mostrará si el usuario ha iniciado sesión (si existe un token) */}
-      {token && <GlobalAddTransactionButton />}
+      {token && (
+        <>
+          <GlobalBalanceIndicator />
+          <GlobalAddTransactionButton />
+        </>
+      )}
     </AppShell>
   );
 }

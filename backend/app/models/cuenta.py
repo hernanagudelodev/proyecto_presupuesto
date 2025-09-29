@@ -44,12 +44,9 @@ class Cuenta(Base):
         )
     )
 
+
 # --- RELACIONES INVERSAS EN EL MODELO TRANSACCION ---
 # Necesitamos estas relaciones para que la propiedad híbrida funcione.
 # Le decimos a SQLAlchemy que una Cuenta puede tener muchas transacciones de origen y destino.
-Cuenta.transacciones_origen = relationship("Transaccion", foreign_keys=[Transaccion.cuenta_origen_id], back_populates="cuenta_origen")
-Cuenta.transacciones_destino = relationship("Transaccion", foreign_keys=[Transaccion.cuenta_destino_id], back_populates="cuenta_destino")
-
-# Y le decimos a Transaccion cómo acceder a la Cuenta.
-Transaccion.cuenta_origen = relationship("Cuenta", foreign_keys=[Transaccion.cuenta_origen_id], back_populates="transacciones_origen")
-Transaccion.cuenta_destino = relationship("Cuenta", foreign_keys=[Transaccion.cuenta_destino_id], back_populates="transacciones_destino")
+transacciones_origen = relationship("Transaccion", foreign_keys=[Transaccion.cuenta_origen_id], back_populates="cuenta_origen")
+transacciones_destino = relationship("Transaccion", foreign_keys=[Transaccion.cuenta_destino_id], back_populates="cuenta_destino")
