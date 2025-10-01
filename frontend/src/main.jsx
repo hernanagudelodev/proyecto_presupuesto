@@ -7,6 +7,7 @@ import { AuthProvider } from './context/AuthContext';
 // Importa el proveedor de Mantine y los estilos base
 import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
+import '@mantine/dates/styles.css';
 
 import App from './App.jsx';
 import Login from './pages/Login.jsx';
