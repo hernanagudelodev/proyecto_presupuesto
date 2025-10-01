@@ -191,7 +191,6 @@ function TransactionsHistory() {
             leftSection={<IconCalendar size="1.1rem" stroke={1.5} />}
             clearable
             valueFormat="D [de] MMMM, YYYY"
-            maxDate={new Date()}
             dropdownType={isMobile ? 'modal' : 'popover'}
           />
 
