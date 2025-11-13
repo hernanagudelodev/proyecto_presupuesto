@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 // 1. Importamos Card, Stack, Badge y el hook useMediaQuery
-import { Container, Title, Table, Button, Group, Text, Select, NumberInput, Card, Stack, Badge } from '@mantine/core';
+import { Container, Title, Table, Button, Group, Text, Select, NumberInput, Card, Stack, Badge, TextInput, Paper } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import axiosInstance from '../api/axiosInstance';
 import GenericModal from '../components/GenericModal';
@@ -17,9 +17,47 @@ function RecurringRules() {
   const [selectedRule, setSelectedRule] = useState(null);
   const [planningMonth, setPlanningMonth] = useState(String(new Date().getMonth() + 1));
   const [planningYear, setPlanningYear] = useState(new Date().getFullYear());
+  // --- NUEVOS ESTADOS PARA FILTRO Y ORDEN ---
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState({ key: 'descripcion', direction: 'asc' });
 
   // 2. Hook para detectar el tamaño de la pantalla
   const isMobile = useMediaQuery('(max-width: 768px)');
+
+  // --- NUEVO: Lógica de Filtro y Ordenamiento ---
+  const filteredAndSortedRules = useMemo(() => {
+    const filtered = rules.filter(rule =>
+      // 1. Filtramos por la descripción (ignorando mayúsculas/minúsculas)
+      rule.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // 2. Ordenamos el resultado del filtro
+    const sorted = [...filtered].sort((a, b) => {
+      // Manejo simple para ordenar por strings o números
+      const aValue = a[sortConfig.key];
+      const bValue = b[sortConfig.key];
+
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+
+    return sorted;
+  }, [rules, searchTerm, sortConfig]); // Se recalcula si cambian las reglas, la búsqueda o el orden
+
+  // --- NUEVO: Función para cambiar el orden ---
+  const requestSort = (key) => {
+    let direction = 'asc';
+    // Si ya estamos ordenando por esta columna, invertimos la dirección
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
 
   const fetchData = useCallback(async () => {
     try {
@@ -79,15 +117,24 @@ function RecurringRules() {
     <Table striped highlightOnHover>
       <Table.Thead>
         <Table.Tr>
-          <Table.Th>Descripción</Table.Th>
-          <Table.Th>Tipo</Table.Th>
-          <Table.Th style={{ textAlign: 'right' }}>Valor Predeterminado</Table.Th>
-          <Table.Th>Frecuencia</Table.Th>
+          <Table.Th onClick={() => requestSort('descripcion')} style={{ cursor: 'pointer' }}>
+            Descripción {sortConfig.key === 'descripcion' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''}
+          </Table.Th>
+          <Table.Th onClick={() => requestSort('tipo')} style={{ cursor: 'pointer' }}>
+            Tipo {sortConfig.key === 'tipo' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''}
+          </Table.Th>
+          <Table.Th onClick={() => requestSort('valor_predeterminado')} style={{ textAlign: 'right', cursor: 'pointer' }}>
+            Valor {sortConfig.key === 'valor_predeterminado' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''}
+          </Table.Th>
+          <Table.Th onClick={() => requestSort('frecuencia')} style={{ cursor: 'pointer' }}>
+            Frecuencia {sortConfig.key === 'frecuencia' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''}
+          </Table.Th>
           <Table.Th>Acciones</Table.Th>
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody>
-        {rules.map((rule) => (
+        {/* --- USAMOS LA NUEVA LISTA --- */}
+        {filteredAndSortedRules.map((rule) => (
           <Table.Tr key={rule.id}>
             <Table.Td>{rule.descripcion}</Table.Td>
             <Table.Td>{rule.tipo}</Table.Td>
@@ -108,7 +155,8 @@ function RecurringRules() {
   // --- 4. NUEVA VISTA PARA MÓVIL (TARJETAS) ---
   const MobileView = (
     <Stack>
-      {rules.map((rule) => (
+      {/* --- USAMOS LA NUEVA LISTA --- */}
+      {filteredAndSortedRules.map((rule) => (
         <Card shadow="sm" padding="lg" radius="md" withBorder key={rule.id}>
           <Group position="apart" mb="xs">
             <Text weight={500}>{rule.descripcion}</Text>
@@ -140,11 +188,26 @@ function RecurringRules() {
           <Button onClick={() => setModalContent('add')}>Crear Nueva Regla</Button>
         </Group>
       </Group>
+      <Paper withBorder shadow="sm" p="md" mb="xl">
+        <TextInput
+          placeholder="Buscar por descripción..."
+          value={searchTerm}
+          onChange={(event) => setSearchTerm(event.currentTarget.value)}
+        />
+      </Paper>
 
-      {rules.length > 0 
-        ? (isMobile ? MobileView : DesktopView) // <-- 5. EL INTERRUPTOR MÁGICO
-        : <Text>No tienes reglas recurrentes todavía.</Text>
-      }
+      {/* --- LÓGICA DE RENDERIZADO ACTUALIZADA --- */}
+      {/* Primero, revisamos si la lista ORIGINAL está vacía */}
+      {rules.length === 0 ? (
+        <Text mt="lg">No tienes reglas recurrentes todavía.</Text>
+      ) : 
+      // Si hay reglas, revisamos si la lista FILTRADA está vacía
+      filteredAndSortedRules.length === 0 ? (
+        <Text mt="lg" align="center">No se encontraron reglas que coincidan con tu búsqueda.</Text>
+      ) : (
+        // Si hay resultados en la lista filtrada, los mostramos
+        isMobile ? MobileView : DesktopView
+      )}
 
       {/* El modal no necesita cambios, seguirá funcionando igual */}
       <GenericModal
