@@ -21,10 +21,13 @@ async def get_regla(db: AsyncSession, regla_id: int, usuario_id: int) -> Optiona
     return result.scalar_one_or_none()
 
 async def get_reglas_by_usuario(db: AsyncSession, usuario_id: int, skip: int = 0, limit: int = 100) -> List[ReglaRecurrente]:
-    """Obtiene una lista de todas las reglas de un usuario."""
+    """Obtiene una lista de todas las reglas ACTIVAS de un usuario."""
     result = await db.execute(
         select(ReglaRecurrente)
-        .where(ReglaRecurrente.usuario_id == usuario_id)
+        .where(
+            ReglaRecurrente.usuario_id == usuario_id,
+            ReglaRecurrente.is_active == True
+        )
         .offset(skip)
         .limit(limit)
     )
@@ -56,12 +59,19 @@ async def update_regla(db: AsyncSession, *, db_obj: ReglaRecurrente, obj_in: Reg
 
 # --- ELIMINAR REGLA ---
 async def delete_regla(db: AsyncSession, regla_id: int, usuario_id: int) -> Optional[ReglaRecurrente]:
-    """Elimina una regla de la base de datos."""
+    """
+    Elimina una regla de la base de datos.
+    MODIFICADO: Ahora hace un "soft delete" poniendo is_active = False.
+    """
     # Primero, busca la regla para asegurarse de que existe y pertenece al usuario
     regla = await get_regla(db, regla_id, usuario_id)
     if regla:
-        await db.delete(regla)
-        await db.commit()
+        # --- LÍNEAS MODIFICADAS ---
+        regla.is_active = False  # 1. Cambiamos el estado
+        db.add(regla)            # 2. Añadimos el objeto modificado a la sesión
+        await db.commit()        # 3. Guardamos los cambios
+        await db.refresh(regla)  # 4. Refrescamos el objeto
+        # --- FIN DE LAS MODIFICACIONES ---
     return regla
 
 async def generar_transacciones_planeadas(db: AsyncSession, usuario_id: int, year: int, month: int) -> List[Transaccion]:

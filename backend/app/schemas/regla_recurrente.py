@@ -26,10 +26,14 @@ class ReglaRecurrenteUpdate(BaseModel):
     mes: Optional[int] = None # <-- AÑADIDO
     categoria_predeterminada_id: Optional[int] = None
 
+    is_active: Optional[bool] = None
+
 # Esquema para la respuesta de la API (lo que se envía al frontend)
 class ReglaRecurrenteResponse(ReglaRecurrenteBase):
     id: int
     usuario_id: int
+
+    is_active: bool
 
     class Config:
         from_attributes = True

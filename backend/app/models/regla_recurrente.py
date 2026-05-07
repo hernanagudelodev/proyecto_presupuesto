@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from app.db.base_class import Base
 
@@ -17,6 +17,10 @@ class ReglaRecurrente(Base):
     # Datos para la regla de recurrencia
     frecuencia = Column(String, nullable=False) # ej: "mensual", "semanal", "anual"
     dia = Column(Integer, nullable=True) # ej: 15 (para el día del mes), o 5 (para 'viernes' si es semanal)
+
+    # Permite desactivar la regla sin eliminarla, y asi evitar que genere nuevas transacciones.
+    # Estará activa por defecto y no puede ser nula.
+    is_active = Column(Boolean, nullable=False, default=True)
     
     # Guardará el número del mes (1-12) para las reglas anuales
     mes = Column(Integer, nullable=True)
